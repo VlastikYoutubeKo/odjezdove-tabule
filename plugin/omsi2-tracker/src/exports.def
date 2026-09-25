@@ -1,0 +1,8 @@
+LIBRARY omsi2tracker
+EXPORTS
+    PluginStart
+    PluginFinalize
+    AccessVariable
+    AccessStringVariable
+    AccessSystemVariable
+    AccessTrigger

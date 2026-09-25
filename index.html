@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Odjezdové tabule</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap">
+  <link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="site">
+      <h1>Odjezdové tabule</h1>
+      <nav>
+        <a href="vozy.html">Vozy na trati</a>
+        <a href="https://github.com/VlastikYoutubeKo/odjezdove-tabule">GitHub</a>
+      </nav>
+    </header>
+
+    <input type="search" id="q" placeholder="Hledat zastávku…" aria-label="Hledat zastávku">
+    <div id="maps"></div>
+
+    <h2>Vlastní data</h2>
+    <p class="muted">Adresa JSON souboru ve formátu tabule nebo jízdního řádu (viz <a href="https://github.com/VlastikYoutubeKo/odjezdove-tabule/blob/main/docs/DATOVY-FORMAT.md">dokumentace</a>).</p>
+    <form class="custom" id="custom">
+      <input type="url" id="src" placeholder="https://example.com/moje-tabule.json" required>
+      <button type="submit">Zobrazit</button>
+    </form>
+  </div>
+
+  <script src="assets/js/index.js"></script>
+</body>
+</html>

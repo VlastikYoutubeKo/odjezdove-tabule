@@ -1,0 +1,49 @@
+{
+  "map": "autobahnmap",
+  "routes": [
+    {
+      "route": "201",
+      "headsign": "Nemocnice",
+      "wheelchair": true,
+      "days": [1, 2, 3, 4, 5, 6, 7],
+      "stops": [
+        { "stop": "0000000001", "platform": "7", "offset": 0 },
+        { "stop": "0000000002", "platform": "1", "offset": 6 }
+      ],
+      "every": { "from": "05:00", "to": "23:30", "interval": 15 }
+    },
+    {
+      "route": "201",
+      "headsign": "Lovosice, aut. nádr.",
+      "wheelchair": true,
+      "stops": [
+        { "stop": "0000000002", "platform": "2", "offset": 0 },
+        { "stop": "0000000001", "platform": "7", "offset": 7 }
+      ],
+      "every": { "from": "05:08", "to": "23:38", "interval": 15 }
+    },
+    {
+      "route": "210",
+      "headsign": "Maxičky",
+      "wheelchair": true,
+      "days": [1, 2, 3, 4, 5],
+      "stops": [
+        { "stop": "0000000001", "platform": "7", "offset": 0 },
+        { "stop": "0000000002", "platform": "1", "offset": 5 },
+        { "stop": "0000000003", "platform": "A", "offset": 12 }
+      ],
+      "departures": ["05:23", "06:23", "07:23", "08:23", "10:23", "12:23", "14:23", "15:23", "16:23", "18:23", "20:23", "22:23"]
+    },
+    {
+      "route": "214",
+      "headsign": "Podskalí",
+      "note": "↬ 28.října",
+      "noteEn": "↬ 28.října",
+      "stops": [
+        { "stop": "0000000001", "platform": "7", "offset": 0 },
+        { "stop": "0000000003", "platform": "B", "offset": 9 }
+      ],
+      "every": { "from": "06:10", "to": "22:10", "interval": 60 }
+    }
+  ]
+}

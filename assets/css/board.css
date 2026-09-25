@@ -1,0 +1,185 @@
+/* Odjezdová tabule – styl LCD panelů na zastávkách (tmavě modré pozadí, bílé písmo). */
+:root {
+  --bg: #0a1a33;
+  --bg-row: #0f2446;
+  --bg-row-alt: #0c1f3d;
+  --header: #13325f;
+  --line: #ffffff;
+  --text: #f4f7fb;
+  --muted: #9fb3d1;
+  --accent: #ffcc00;
+  --live: #3ddc84;
+  --late: #ff6b5a;
+  --badge-bg: #ffffff;
+  --badge-text: #0a1a33;
+  --font: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  overflow: hidden;
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* základní velikost písma se škáluje s oknem → funguje na TV i na mobilu */
+  font-size: min(3.4vw, 4.9vh);
+}
+
+/* ---- hlavička ---- */
+.board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.35em 0.6em;
+  background: var(--header);
+  border-bottom: 0.08em solid var(--accent);
+}
+.stop-name {
+  font-size: 1.35em;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.clock {
+  font-size: 1.35em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+/* ---- tabulka ---- */
+.cols, .row {
+  display: grid;
+  grid-template-columns: 3.4em 1fr 3.2em 4.2em;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0 0.6em;
+}
+.cols > div { font-size: 0.62em; }
+.cols {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.cols .c-plat, .cols .c-time { text-align: right; }
+
+.rows { flex: 1; overflow: hidden; }
+
+.row {
+  min-height: 1.8em;
+  padding-top: 0.15em;
+  padding-bottom: 0.15em;
+  background: var(--bg-row);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.row:nth-child(even) { background: var(--bg-row-alt); }
+
+.badge {
+  display: inline-block;
+  min-width: 2.4em;
+  padding: 0.05em 0.25em;
+  border-radius: 0.18em;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  font-weight: 700;
+  text-align: center;
+}
+
+.headsign {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.headsign .wc { font-size: 0.8em; margin-right: 0.2em; }
+.headsign .note {
+  display: block;
+  font-size: 0.6em;
+  color: var(--muted);
+  line-height: 1.1;
+}
+.headsign .live {
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin-right: 0.3em;
+  border-radius: 50%;
+  background: var(--live);
+  vertical-align: middle;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.headsign .delay {
+  margin-left: 0.4em;
+  font-size: 0.65em;
+  color: var(--late);
+  font-weight: 700;
+}
+.headsign .delay.ok { color: var(--live); }
+
+.plat { text-align: right; font-weight: 700; }
+.time {
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.time small { font-size: 0.55em; font-weight: 400; color: var(--muted); margin-left: 0.15em; }
+.time.now { color: var(--accent); animation: blink 1s steps(1) infinite; }
+
+.no-data {
+  padding: 2em 1em;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+/* ---- patička ---- */
+.board-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.35em 0.6em;
+  font-size: 0.55em;
+  color: var(--muted);
+  background: var(--header);
+}
+.board-footer .status.stale { color: var(--late); }
+
+/* ---- reklama ---- */
+.ad {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+.ad.show { display: flex; }
+.ad img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+/* ---- chyba ---- */
+.error {
+  padding: 1em;
+  color: var(--late);
+  font-size: 0.7em;
+}
+
+@keyframes blink { 50% { opacity: 0.25; } }
+@keyframes pulse { 50% { opacity: 0.35; transform: scale(0.8); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .time.now, .headsign .live { animation: none; }
+}

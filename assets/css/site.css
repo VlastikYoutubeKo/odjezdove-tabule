@@ -1,0 +1,50 @@
+:root {
+  --bg: #0a1a33;
+  --panel: #10284f;
+  --text: #f4f7fb;
+  --muted: #9fb3d1;
+  --accent: #ffcc00;
+  --live: #3ddc84;
+  --border: rgba(255, 255, 255, 0.12);
+  --font: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 18px;
+  line-height: 1.4;
+}
+a { color: var(--accent); }
+.wrap { max-width: 960px; margin: 0 auto; padding: 16px; }
+header.site {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px;
+  border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 16px;
+}
+header.site h1 { margin: 0; font-size: 1.6em; }
+header.site nav a { margin-left: 12px; }
+h2 { font-size: 1.15em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 24px 0 8px; }
+input[type=search], input[type=url] {
+  width: 100%; padding: 10px 12px; font: inherit; color: var(--text);
+  background: var(--panel); border: 1px solid var(--border); border-radius: 4px;
+}
+.stops { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.stops a {
+  display: flex; justify-content: space-between; gap: 8px; padding: 10px 12px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); text-decoration: none;
+}
+.stops a:hover, .stops a:focus { border-color: var(--accent); }
+.stops .id { color: var(--muted); font-size: 0.8em; }
+form.custom { display: flex; gap: 8px; }
+form.custom button {
+  padding: 0 16px; font: inherit; font-weight: 700; border: 0; border-radius: 4px;
+  background: var(--accent); color: var(--bg); cursor: pointer;
+}
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 400; text-transform: uppercase; font-size: 0.8em; }
+.muted { color: var(--muted); }
+.table-scroll { overflow-x: auto; }
