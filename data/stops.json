@@ -1,0 +1,13 @@
+{
+  "maps": [
+    { "id": "autobahnmap", "name": "Autobahnmap" },
+    { "id": "bilina", "name": "MHD Bílina" }
+  ],
+  "stops": [
+    { "id": "0000000001", "name": "Lovosice, aut. nádr.", "map": "autobahnmap", "source": "static" },
+    { "id": "0000000002", "name": "Lovosice, nemocnice", "map": "autobahnmap", "source": "timetable" },
+    { "id": "0000000003", "name": "Lovosice, Maxičky", "map": "autobahnmap", "source": "timetable" },
+    { "id": "0000000101", "name": "Bílina, aut. nádr.", "map": "bilina", "source": "timetable" },
+    { "id": "0000000102", "name": "Bílina, Kyselka", "map": "bilina", "source": "timetable" }
+  ]
+}

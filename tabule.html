@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Odjezdová tabule</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap">
+  <link rel="stylesheet" href="assets/css/board.css">
+</head>
+<body>
+  <main class="board">
+    <header class="board-header">
+      <div class="stop-name" id="stop-name">Načítám…</div>
+      <div class="clock" id="clock">--:--:--</div>
+    </header>
+
+    <div class="cols">
+      <div class="c-line" data-cs="Linka" data-en="Line">Linka</div>
+      <div class="c-dir" data-cs="Směr" data-en="Destination">Směr</div>
+      <div class="c-plat" data-cs="Nást." data-en="Plat.">Nást.</div>
+      <div class="c-time" data-cs="Odjezd" data-en="Departure">Odjezd</div>
+    </div>
+
+    <section class="rows" id="rows"></section>
+
+    <footer class="board-footer">
+      <span id="note"></span>
+      <span class="status" id="status"></span>
+    </footer>
+  </main>
+
+  <div class="ad" id="ad"><img alt=""></div>
+
+  <script src="assets/js/departures.js"></script>
+  <script src="assets/js/board.js"></script>
+</body>
+</html>

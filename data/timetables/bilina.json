@@ -1,0 +1,25 @@
+{
+  "map": "bilina",
+  "routes": [
+    {
+      "route": "1",
+      "headsign": "Kyselka",
+      "wheelchair": true,
+      "stops": [
+        { "stop": "0000000101", "platform": "3", "offset": 0 },
+        { "stop": "0000000102", "platform": "1", "offset": 8 }
+      ],
+      "every": { "from": "04:45", "to": "22:45", "interval": 30 }
+    },
+    {
+      "route": "1",
+      "headsign": "Bílina, aut. nádr.",
+      "wheelchair": true,
+      "stops": [
+        { "stop": "0000000102", "platform": "2", "offset": 0 },
+        { "stop": "0000000101", "platform": "3", "offset": 9 }
+      ],
+      "every": { "from": "05:00", "to": "23:00", "interval": 30 }
+    }
+  ]
+}

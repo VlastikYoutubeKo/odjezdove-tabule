@@ -1,0 +1,11 @@
+{
+  "apiBase": "",
+  "refreshSeconds": 20,
+  "windowMinutes": 120,
+  "maxRows": 8,
+  "languageSwitchSeconds": 8,
+  "noDataText": "V následujících 120 minutách nebyl nalezen žádný odjezd",
+  "noDataTextEn": "No departure was found in the following 120 minutes",
+  "dispatcherNote": "www.ds-uk.cz  |  Autobahnmap v Česku",
+  "dispatcherNoteEn": "www.ds-uk.cz  |  Autobahnmap in Czechia"
+}
