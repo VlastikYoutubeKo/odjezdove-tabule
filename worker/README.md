@@ -55,8 +55,9 @@ node ../server/simulate.js http://localhost:8787 tajny
 
 ## Limity free tarifu
 
-Orientačně (aktuální čísla ověřte v ceníku Cloudflare): free tarif má zhruba 100 000 požadavků
-denně na Workers i na Durable Objects.
+Free tarif má 100 000 požadavků denně (limit se nuluje v 00:00 UTC). Durable Objects
+s úložištěm SQLite jsou ve free tarifu k dispozici, proto `wrangler.toml` používá
+`new_sqlite_classes`. Workers KV by nestačilo: zdarma povoluje jen 1 000 zápisů denně.
 
 - Každé hlášení z pluginu jsou 2 požadavky (Worker + Durable Object). Jeden hráč s intervalem
   5 s za hodinu udělá ~1 440 požadavků. S `interval=10` v `omsi2tracker.ini` je to polovina.
