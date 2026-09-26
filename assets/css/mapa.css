@@ -19,6 +19,10 @@
 #map { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; background: #081528; }
 #map.dragging { cursor: grabbing; }
 
+#base path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+#base .road { stroke: #2a3f63; }
+#base .rail { stroke: #5b4a3a; stroke-dasharray: 6 4; }
+
 .trail { fill: none; stroke: rgba(159, 179, 209, 0.28); stroke-linecap: round; stroke-linejoin: round; }
 
 .veh { cursor: pointer; }

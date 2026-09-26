@@ -109,3 +109,20 @@ Server se souborem musí povolit CORS (GitHub Pages i raw.githubusercontent.com 
 | `maxRows` | počet řádků na tabuli |
 | `languageSwitchSeconds` | interval střídání češtiny a angličtiny (`?lang=cs` střídání vypne) |
 | `noDataText(En)`, `dispatcherNote(En)` | výchozí texty |
+
+## `data/maps/<mapa>.json` – podklad pro mapu vozů
+
+Silnice a koleje pro `mapa.html`. Vyrábí ho `OmsiTabule.exe mapa <složka mapy>` a do `data/` ho vloží
+`node tools/import-omsi.js export/<mapa>-mapa.json`.
+
+```json
+{
+  "map": "autobahnmap",
+  "name": "Autobahnmap",
+  "roads": [[753242.5, 3213020.4, 753239.8, 3213022.3]],
+  "rails": []
+}
+```
+
+Každá čára je plochý seznam souřadnic `[x0, y0, x1, y1, …]` v metrech (x = východ, y = sever,
+dlaždice mapy × 300 + poloha na dlaždici) – ve stejném systému posílá polohy vozů plugin.

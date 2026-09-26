@@ -13,6 +13,7 @@ namespace OmsiTabule
     ///   OmsiTabule.exe            posílá vozy na server (Ctrl+C = konec)
     ///   OmsiTabule.exe export     uloží jízdní řád načtené mapy do export\
     ///   OmsiTabule.exe dump       vypíše jeden snímek vozů (nic neposílá)
+    ///   OmsiTabule.exe mapa DIR   převede silnice mapy ze složky DIR (OMSI nemusí běžet)
     /// </summary>
     public static class Program
     {
@@ -25,6 +26,19 @@ namespace OmsiTabule
             string cmd = args.Length > 0 ? args[0].ToLowerInvariant() : "run";
 
             Log.Write($"OmsiTabule {Log.Version}");
+            if (cmd == "mapa")
+            {
+                // převod silnic ze souborů mapy – OMSI nemusí běžet
+                if (args.Length < 2 || !Directory.Exists(args[1]))
+                {
+                    Console.WriteLine("Použití: OmsiTabule.exe mapa \"C:\\…\\OMSI 2\\maps\\Mapa\" [id-mapy]");
+                    return 2;
+                }
+                var id = args.Length > 2 ? args[2] : (cfg.Map.Length > 0 ? cfg.Map : null);
+                Tracker.ExportMap(args[1], id, null, dir);
+                return 0;
+            }
+
             Console.WriteLine("Připojuji se k OMSI 2 (musí běžet, verze 2.3.004)…");
             using var hook = new OmsiHook.OmsiHook();
             await hook.AttachToOMSI(false);
@@ -48,7 +62,7 @@ namespace OmsiTabule
                     done.Wait();
                     return 0;
                 default:
-                    Console.WriteLine("Použití: OmsiTabule.exe [run|export|dump]");
+                    Console.WriteLine("Použití: OmsiTabule.exe [run|export|dump|mapa <složka>]");
                     return 2;
             }
         }

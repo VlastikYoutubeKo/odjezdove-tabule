@@ -22,6 +22,8 @@
   var view = { cx: 0, cy: 0, s: 0.5 };   // střed ve světě, pixelů na metr
   var userMoved = false;
   var trails = loadTrails();            // { mapa: { vůz: [[x,y]|null, …] } }
+  var basemaps = {};                    // { mapa: { ox, oy, roads: "d", rails: "d", bbox } | false }
+  var gBase = $("base");
 
   // ---------- ukládání stop (jen v tomto prohlížeči) ----------
   function loadTrails() {
@@ -72,6 +74,10 @@
       var m = trails[currentMap] || {};
       Object.keys(m).forEach(function (k) { m[k].forEach(function (p) { if (p) pts.push(p); }); });
     }
+    var base = basemaps[currentMap];
+    if (!pts.length && base) {
+      pts = [[base.bbox[0], base.bbox[1]], [base.bbox[2], base.bbox[3]]];
+    }
     if (!pts.length) return;
     var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     pts.forEach(function (p) {
@@ -85,6 +91,52 @@
     view.s = Math.min((z.w - 140) / spanX, (z.h - 140) / spanY, 2);
     userMoved = false;
     render();
+  }
+
+  // ---------- podklad: silnice z mapy OMSI (data/maps/<mapa>.json, viz tools/import-omsi.js) ----------
+  function loadBasemap(map) {
+    if (!map || basemaps[map] !== undefined) return;
+    basemaps[map] = false;
+    fetch("data/maps/" + encodeURIComponent(map) + ".json")
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (data) {
+        var first = (data.roads || [])[0] || (data.rails || [])[0];
+        if (!first) return;
+        // souřadnice jsou velká čísla (dlaždice × 300 m) – kvůli přesnosti SVG kreslíme vůči počátku
+        var ox = first[0], oy = first[1];
+        var bbox = [Infinity, Infinity, -Infinity, -Infinity];
+        function toD(lines) {
+          var d = "";
+          (lines || []).forEach(function (l) {
+            for (var i = 0; i + 1 < l.length; i += 2) {
+              var x = l[i], y = l[i + 1];
+              if (x < bbox[0]) bbox[0] = x; if (y < bbox[1]) bbox[1] = y;
+              if (x > bbox[2]) bbox[2] = x; if (y > bbox[3]) bbox[3] = y;
+              d += (i ? "L" : "M") + (x - ox).toFixed(1) + " " + (y - oy).toFixed(1);
+            }
+          });
+          return d;
+        }
+        basemaps[map] = { ox: ox, oy: oy, roads: toD(data.roads), rails: toD(data.rails), bbox: bbox };
+        if (map === currentMap) { gBase.textContent = ""; if (!userMoved) fit(); else render(); }
+      })
+      .catch(function () { /* mapa bez podkladu */ });
+  }
+
+  function renderBase() {
+    var base = basemaps[currentMap];
+    if (!base) { gBase.textContent = ""; return; }
+    if (!gBase.firstChild) {
+      if (base.roads) gBase.appendChild(el("path", { d: base.roads, class: "road", "vector-effect": "non-scaling-stroke" }));
+      if (base.rails) gBase.appendChild(el("path", { d: base.rails, class: "rail", "vector-effect": "non-scaling-stroke" }));
+    }
+    var z = size();
+    // svět → obrazovka: posun na střed, měřítko, osa y míří na sever (nahoru)
+    gBase.setAttribute("transform",
+      "translate(" + (z.w / 2) + " " + (z.h / 2) + ") scale(" + view.s + " " + (-view.s) + ") translate(" +
+      (base.ox - view.cx) + " " + (base.oy - view.cy) + ")");
+    // silnice ~7 m široká, ale aspoň 1,5 px, ať je vidět i při oddálení
+    gBase.setAttribute("stroke-width", Math.max(1.5, Math.min(14, view.s * 7)).toFixed(2));
   }
 
   // ---------- vykreslení ----------
@@ -180,12 +232,13 @@
   }
 
   function render() {
+    renderBase();
     renderTrails();
     renderVehicles();
     renderScale();
     renderDetail();
     var n = visibleVehicles().length;
-    $("empty").hidden = n > 0 || Object.keys(trails[currentMap] || {}).length > 0;
+    $("empty").hidden = n > 0 || Object.keys(trails[currentMap] || {}).length > 0 || !!basemaps[currentMap];
   }
 
   function select(id) {
@@ -225,6 +278,7 @@
       .then(function (data) {
         vehicles = data.vehicles || [];
         updateMapSelect(data);
+        loadBasemap(currentMap);
         vehicles.forEach(function (v) { if (v.x != null && v.y != null) addTrailPoint(v.map || "?", v); });
         saveTrails();
         var n = visibleVehicles().length;
@@ -295,6 +349,8 @@
   $("show-trails").addEventListener("change", render);
   $("map-select").addEventListener("change", function (e) {
     currentMap = e.target.value;
+    gBase.textContent = "";
+    loadBasemap(currentMap);
     selectedId = null;
     fit();
     render();

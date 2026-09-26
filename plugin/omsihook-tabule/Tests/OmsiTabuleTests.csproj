@@ -6,9 +6,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../Core/Config.cs;../Core/Exporter.cs;../Core/Log.cs;../Core/Models.cs;../Core/OmsiEnvironment.cs;../Core/Text.cs" />
+    <Compile Include="../Core/Config.cs;../Core/Exporter.cs;../Core/Log.cs;../Core/MapExporter.cs;../Core/Models.cs;../Core/OmsiEnvironment.cs;../Core/Text.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <None Include="data/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -114,6 +114,23 @@ namespace OmsiTabule
             var path = Path.Combine(dir, file.Map.Id + ".json");
             File.WriteAllText(path, JsonSerializer.Serialize(file, new JsonSerializerOptions(Json) { WriteIndented = true }));
             Log.Write($"Export: {file.Stops.Count} zastávek, {file.Timetable.Routes.Count} tras → {path}");
+            var folder = reader.MapFolder();
+            if (folder != null) ExportMap(folder, file.Map.Id, file.Map.Name, cfg.BaseDir);
+            else Log.Write("Export mapy: složku mapy se nepodařilo zjistit – použijte OmsiTabule.exe mapa <složka>");
+            return path;
+        }
+
+        /// <summary>Silniční síť mapy do export\&lt;mapa&gt;-mapa.json (nepotřebuje běžící OMSI).</summary>
+        public static string ExportMap(string folder, string? mapId, string? mapName, string baseDir)
+        {
+            mapName ??= MapExporter.MapNameFromFolder(folder);
+            mapId ??= Text.Slug(mapName);
+            var map = MapExporter.FromFolder(folder, mapId, mapName);
+            var dir = Path.Combine(baseDir, "export");
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, mapId + "-mapa.json");
+            File.WriteAllText(path, JsonSerializer.Serialize(map, Json));
+            Log.Write($"Export mapy: {map.Tiles} dlaždic, {map.Layers.Roads.Count} úseků silnic, {map.Layers.Rails.Count} kolejí → {path}");
             return path;
         }
 

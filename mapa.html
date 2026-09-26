@@ -24,6 +24,7 @@
   <main class="map-wrap">
     <svg id="map" role="img" aria-label="Poloha vozů na mapě">
       <g id="viewport">
+        <g id="base"></g>
         <g id="trails"></g>
         <g id="vehicles"></g>
       </g>
@@ -31,8 +32,8 @@
     <div class="scale" id="scale"></div>
     <aside class="detail" id="detail" hidden></aside>
     <p class="empty muted" id="empty" hidden>
-      Na této mapě teď nikdo s polohou nejezdí.<br>
-      Polohu posílá plugin OmsiTabule (verze 0.1 a novější).
+      Na této mapě teď nikdo s polohou nejezdí a mapa nemá podklad.<br>
+      Podklad (silnice) vyrobí <code>OmsiTabule.exe mapa</code>, viz návod k pluginu.
     </p>
   </main>
 

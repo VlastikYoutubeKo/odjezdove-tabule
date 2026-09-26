@@ -7,7 +7,8 @@ OMSI 2, takže nezávisí na skriptech autobusu a vidí:
   s linkou, cílem, příští zastávkou a zpožděním,
 - **polohu a směr jízdy** každého vozu (metry od středu mapy), počet cestujících a výrobce/model vozu,
 - **název mapy a herní čas**,
-- **celý jízdní řád mapy**, který umí vyexportovat do formátu `data/` (nemusíte ho přepisovat ručně).
+- **celý jízdní řád mapy**, který umí vyexportovat do formátu `data/` (nemusíte ho přepisovat ručně),
+- **silnice mapy** jako podklad pro živou mapu vozů na webu.
 
 > **Stav: čeká na první test ve hře.** Kód se přeloží proti OmsiHook 2.5.3 a export je pokrytý
 > testy, ale nikdo ho zatím nespustil v OMSI. Postup testu je níže.
@@ -80,6 +81,27 @@ nic neděje, pošlete `OmsiTabule.log`.
 
 **Co poslat zpět:** výpis `dump`, `OmsiTabule.log` a exportovaný JSON (stačí kousek). Pokud něco nesedí,
 napište, co ukazuje OMSI a co program.
+
+## Podklad pro mapu vozů (silnice)
+
+Mapa na webu (`mapa.html`) umí pod autobusy vykreslit skutečné silnice z mapy OMSI:
+
+```
+OmsiTabule.exe mapa "C:\Program Files (x86)\Steam\steamapps\common\OMSI 2\maps\Autobahnmap" autobahnmap
+```
+
+OMSI k tomu nemusí běžet. Program přečte všechny `tile_X_Y.map` ve složce mapy a uloží
+`export\autobahnmap-mapa.json` (poslední parametr je ID mapy z `data/stops.json`). Plugin totéž
+udělá sám po načtení mapy, pokud najde její složku. Do webu se soubor vloží stejně jako jízdní řád:
+
+```
+node tools/import-omsi.js export\autobahnmap-mapa.json
+```
+
+→ `data/maps/autobahnmap.json`. Kreslí se silnice a koleje; vodorovné značení a neviditelné cesty
+AI se vynechávají. Polohy vozů i silnice jsou ve stejných souřadnicích (dlaždice × 300 m + poloha
+na dlaždici), takže na sebe sedí. **Při testu ověřte:** plugin do logu zapíše „Vůz hráče: dlaždice X_Y“
+– čísla by měla odpovídat souboru `tile_X_Y.map`, na kterém autobus stojí.
 
 ## Vložení exportu do webu
 
