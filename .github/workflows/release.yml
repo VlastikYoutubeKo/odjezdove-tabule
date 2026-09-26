@@ -69,7 +69,8 @@ jobs:
           $v = "${{ steps.v.outputs.label }}"
           if (-not (Test-Path out/plugin/OmsiTabuleNE.dll)) { throw "Chybí OmsiTabuleNE.dll" }
           Remove-Item out/plugin/*.pdb, out/program/*.pdb -ErrorAction SilentlyContinue
-          Copy-Item plugin/omsihook-tabule/INSTALACE.txt out/plugin/, out/program/
+          Copy-Item plugin/omsihook-tabule/INSTALACE.txt out/plugin/
+          Copy-Item plugin/omsihook-tabule/INSTALACE.txt out/program/
           New-Item -ItemType Directory -Force dist | Out-Null
           Compress-Archive -Path out/plugin/* -DestinationPath "dist/OmsiTabule-plugin-$v.zip"
           Compress-Archive -Path out/program/* -DestinationPath "dist/OmsiTabule-program-$v.zip"
