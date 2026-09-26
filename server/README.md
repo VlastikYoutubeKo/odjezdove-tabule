@@ -41,7 +41,7 @@ Změny v `data/` se načtou automaticky bez restartu.
 |---|---|---|
 | GET | `/api/stops` | obsah `data/stops.json` |
 | GET | `/api/boards/<id>` | tabule zastávky (stejný formát jako `data/boards/*.json`) |
-| GET | `/api/vehicles` | vozy na trati |
+| GET | `/api/vehicles` | vozy v provozu |
 | POST | `/api/vehicles` | hlášení vozu (plugin), vyžaduje `Authorization: Bearer <token>` |
 | DELETE | `/api/vehicles/<id>` | odebrání vozu |
 
