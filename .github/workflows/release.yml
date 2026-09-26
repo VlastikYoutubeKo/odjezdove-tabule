@@ -103,26 +103,38 @@ jobs:
   release:
     needs: [omsihook, legacy]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: release-*
           merge-multiple: true
           path: dist
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.omsihook.outputs.tag }}
-          target_commitish: ${{ needs.omsihook.outputs.sha }}
-          prerelease: ${{ contains(needs.omsihook.outputs.label, '-') }}
-          generate_release_notes: true
-          # u releasu vytvořeného ručně zachová váš popis a návod připojí na konec
-          append_body: true
-          files: dist/*.zip
-          fail_on_unmatched_files: true
-          body: |
-            ## Ke stažení
-            - **OmsiTabule-plugin** – plugin do `OMSI 2\plugins\` (doporučeno)
-            - **OmsiTabule-program** – totéž jako samostatný program vedle hry (bezpečnější na testování)
-            - **omsi2tracker-zaloha** – jednoduchý záložní plugin pro jiné verze OMSI než 2.3.004
+      - name: Release na GitHubu
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.omsihook.outputs.tag }}
+          SHA: ${{ needs.omsihook.outputs.sha }}
+          LABEL: ${{ needs.omsihook.outputs.label }}
+        run: |
+          ls -l dist
+          cat > notes.md <<'NOTES'
+          ## Ke stažení
+          - **OmsiTabule-plugin** – plugin do `OMSI 2\plugins\` (doporučeno)
+          - **OmsiTabule-program** – totéž jako samostatný program vedle hry (bezpečnější na testování)
+          - **omsi2tracker-zaloha** – jednoduchý záložní plugin pro jiné verze OMSI než 2.3.004
 
-            Vyžaduje **OMSI 2.3.004** a **.NET 8 Runtime x86**. Návod je v `INSTALACE.txt` v každém ZIPu.
+          Vyžaduje **OMSI 2.3.004** a **.NET 8 Runtime x86**. Návod je v `INSTALACE.txt` v každém ZIPu.
+          NOTES
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # existující release (např. vytvořený ručně): jen přiložíme/přepíšeme soubory, popis necháme
+            gh release upload "$TAG" dist/*.zip --clobber
+          else
+            prerelease=""
+            case "$LABEL" in *-*) prerelease="--prerelease" ;; esac
+            gh release create "$TAG" dist/*.zip --target "$SHA" --title "OmsiTabule $LABEL" \
+              --notes-file notes.md --generate-notes $prerelease
+          fi
+          gh release view "$TAG" --json assets --jq '.assets[].name'
