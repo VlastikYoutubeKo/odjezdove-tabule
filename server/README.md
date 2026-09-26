@@ -6,7 +6,7 @@ Malý server v Node.js (bez závislostí), který:
 - přijímá polohy vozů z pluginu OMSI 2,
 - počítá odjezdy ze zastávek z jízdních řádů a živých vozů.
 
-Server je potřeba jen pro živá data z OMSI. Tabule podle jízdních řádů fungují i na GitHub Pages bez serveru.
+Server je potřeba jen pro živá data z OMSI. Tentýž server jde nasadit i na Cloudflare Workers, viz [worker/README.md](../worker/README.md). Tabule podle jízdních řádů fungují i na GitHub Pages bez serveru.
 
 ## Spuštění
 
@@ -31,6 +31,7 @@ Testy: `cd server && npm test`
 | `tokens` | seznam tokenů, které smí posílat vozy (lze přepsat `TOKENS=a,b`). Prázdný = kdokoli. |
 | `vehicleTimeoutSeconds` | po kolika sekundách bez zprávy vůz zmizí |
 | `clock` | `real` = odjezdy podle skutečného času, `game` = podle herního času posledního vozu na mapě |
+| `timeZone` | časové pásmo odjezdů, výchozí `Europe/Prague` (důležité, když server běží v UTC) |
 
 Změny v `data/` se načtou automaticky bez restartu.
 

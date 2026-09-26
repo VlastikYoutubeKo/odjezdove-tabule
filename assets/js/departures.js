@@ -37,6 +37,20 @@
     return d === 0 ? 7 : d;
   }
 
+  // Minuty od půlnoci a den v týdnu v daném časovém pásmu (servery běží často v UTC).
+  function zonedNow(date, timeZone) {
+    if (!timeZone) return { minutes: date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60, weekday: isoWeekday(date) };
+    var parts = {};
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: timeZone, hourCycle: "h23", weekday: "short", hour: "2-digit", minute: "2-digit", second: "2-digit"
+    }).formatToParts(date).forEach(function (p) { parts[p.type] = p.value; });
+    var days = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
+    return {
+      minutes: Number(parts.hour) * 60 + Number(parts.minute) + Number(parts.second) / 60,
+      weekday: days[parts.weekday]
+    };
+  }
+
   function runsOn(route, weekday) {
     return !route.days || route.days.indexOf(weekday) !== -1;
   }
@@ -221,6 +235,7 @@
 
   return {
     parseHM: parseHM,
+    zonedNow: zonedNow,
     tripStarts: tripStarts,
     scheduled: scheduled,
     live: live,

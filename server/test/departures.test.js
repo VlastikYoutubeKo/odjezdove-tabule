@@ -61,3 +61,11 @@ test("vůz na konečné se neukazuje jako odjezd opačným směrem", () => {
   // bez známého směru se použije libovolná trasa linky
   assert.strictEqual(D.live(t, "B", [{ id: "x", route: "1", nextStop: "B" }], {}, 120).length, 1);
 });
+
+test("čas v časovém pásmu Europe/Prague", () => {
+  // 2026-01-05 (pondělí) 23:30 UTC = úterý 00:30 v Praze (zimní čas)
+  const n = D.zonedNow(new Date(Date.UTC(2026, 0, 5, 23, 30)), "Europe/Prague");
+  assert.deepStrictEqual(n, { minutes: 30, weekday: 2 });
+  // letní čas: 2026-07-01 10:00 UTC = 12:00
+  assert.strictEqual(D.zonedNow(new Date(Date.UTC(2026, 6, 1, 10, 0)), "Europe/Prague").minutes, 720);
+});
