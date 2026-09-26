@@ -15,7 +15,7 @@ test("dávka: přijme vozy, doplní zdroj a smaže chybějící", () => {
   let r = Core.applyReport(data, store, {
     source: { id: "hrac1", driver: "Vlasta", map: "m", gameTime: "10:01" },
     vehicles: [
-      { id: "7", route: "5", headsign: "Cé", nextStop: "Áčko", delay: 60 },
+      { id: "7", route: "5", headsign: "Cé", nextStop: "Áčko", delay: 60, x: -120.5, y: 300, heading: 90, passengers: 12 },
       { id: "8", ai: true, route: "5", headsign: "Cé", nextStop: "acko" },
       { route: "bez id" }
     ]
@@ -28,6 +28,7 @@ test("dávka: přijme vozy, doplní zdroj a smaže chybějící", () => {
   assert.strictEqual(ai.nextStop, "A");
   assert.strictEqual(store.get("hrac1:7").driver, "Vlasta");
   assert.strictEqual(store.get("hrac1:7").gameTime, "10:01");
+  assert.deepStrictEqual([store.get("hrac1:7").x, store.get("hrac1:7").heading, store.get("hrac1:7").passengers], [-120.5, 90, 12]);
 
   // jiný zdroj se nesmaže, chybějící vůz téhož zdroje ano
   Core.applyReport(data, store, { id: "stary-plugin", route: "5" });

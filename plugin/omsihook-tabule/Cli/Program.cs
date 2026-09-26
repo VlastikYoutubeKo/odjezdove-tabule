@@ -30,6 +30,7 @@ namespace OmsiTabule
             Console.WriteLine("Připojeno.");
 
             using var tracker = new Tracker(hook, cfg);
+            if (cmd != "run" && !tracker.Preflight()) return 1;
             switch (cmd)
             {
                 case "export":

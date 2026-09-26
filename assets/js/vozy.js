@@ -37,7 +37,7 @@
       wrap.className = "table-scroll";
       var t = document.createElement("table");
       var head = document.createElement("tr");
-      ["Linka", "Směr", "Příští zastávka", "Zpoždění", "Rychlost", "Řidič", "Vůz"].forEach(function (x) {
+      ["Linka", "Směr", "Příští zastávka", "Zpoždění", "Rychlost", "Cestující", "Řidič", "Vůz"].forEach(function (x) {
         var th = document.createElement("th"); th.textContent = x; head.appendChild(th);
       });
       t.appendChild(head);
@@ -49,6 +49,7 @@
           cell(tr, v.nextStopName || v.nextStop);
           cell(tr, fmtDelay(v.delay));
           cell(tr, v.speed != null ? Math.round(v.speed) + " km/h" : "");
+          cell(tr, v.passengers);
           cell(tr, v.ai ? "AI" : v.driver);
           cell(tr, v.vehicle);
           t.appendChild(tr);

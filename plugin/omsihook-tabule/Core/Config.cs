@@ -18,6 +18,8 @@ namespace OmsiTabule
         public bool IncludeAi = true;
         /// <summary>Po načtení mapy uložit její jízdní řád do složky export.</summary>
         public bool ExportOnLoad = true;
+        /// <summary>Zastavit odesílání na jiné verzi OMSI než 2.3.004.</summary>
+        public bool CheckVersion = true;
         /// <summary>Převod AI_Scheduled_Delay na sekundy (pro případ, že by OMSI počítalo v jiných jednotkách).</summary>
         public double DelayScale = 1.0;
         /// <summary>Záložní proměnné skriptu hráčova vozu, když OMSI nemá platná data jízdního řádu.</summary>
@@ -49,6 +51,7 @@ namespace OmsiTabule
             c.IntervalSeconds = Math.Max(2, int.TryParse(Get("interval", "5"), out var i) ? i : 5);
             c.IncludeAi = Get("include_ai", "1") != "0";
             c.ExportOnLoad = Get("export_on_load", "1") != "0";
+            c.CheckVersion = Get("check_version", "1") != "0";
             c.DelayScale = double.TryParse(Get("delay_scale", "1"), System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out var s) ? s : 1.0;
             c.PlayerLineVar = Get("player_line_var", "");

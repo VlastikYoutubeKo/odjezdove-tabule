@@ -33,6 +33,7 @@ namespace OmsiTabule
         public Tracker(OmsiHook.OmsiHook hook, Config cfg)
         {
             this.cfg = cfg;
+            this.hook = hook;
             reader = new OmsiReader(hook, cfg);
             http.DefaultRequestHeaders.UserAgent.ParseAdd("OmsiTabule/1.0");
             if (cfg.Token.Length > 0)
@@ -41,8 +42,38 @@ namespace OmsiTabule
 
         public void Start() => loop = Task.Run(() => Run(cts.Token));
 
+        private readonly OmsiHook.OmsiHook hook;
+
+        /// <summary>Kontrola verze OMSI a doplnění jména řidiče. False = neodesílat.</summary>
+        public bool Preflight()
+        {
+            if (cfg.Driver.Length == 0)
+            {
+                var steam = OmsiEnvironment.SteamPersonaName();
+                if (steam != null) { cfg.Driver = steam; Log.Write($"Jméno řidiče ze Steamu: {steam}"); }
+            }
+            string? exe = null;
+            try { exe = hook.OmsiProcess?.MainModule?.FileName; } catch { }
+            var dir = exe != null ? Path.GetDirectoryName(exe) : null;
+            var version = dir != null ? OmsiEnvironment.DetectVersion(dir) : null;
+            if (version == null)
+            {
+                Log.Write($"Verzi OMSI se nepodařilo zjistit (logfile.txt), pokračuji. Podporovaná je {OmsiEnvironment.SupportedVersion}.");
+                return true;
+            }
+            if (version != OmsiEnvironment.SupportedVersion && cfg.CheckVersion)
+            {
+                Log.Write($"CHYBA: OMSI {version} není podporované (jen {OmsiEnvironment.SupportedVersion}). " +
+                          "OmsiHook by četl špatná místa v paměti, odesílání je vypnuté. (check_version=0 kontrolu vypne)");
+                return false;
+            }
+            Log.Write($"OMSI {version}");
+            return true;
+        }
+
         private async Task Run(CancellationToken ct)
         {
+            if (!Preflight()) return;
             Log.Write($"Odesílám na {cfg.Server} každých {cfg.IntervalSeconds} s jako „{cfg.Id}“");
             while (!ct.IsCancellationRequested)
             {

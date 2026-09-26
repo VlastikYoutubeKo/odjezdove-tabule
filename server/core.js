@@ -59,6 +59,8 @@ function sanitizeVehicle(data, body, now, source) {
     gameTime: /^\d{1,2}:\d{2}$/.test(String(gameTime)) ? String(gameTime) : undefined,
     x: num(body.x),
     y: num(body.y),
+    heading: num(body.heading),
+    passengers: num(body.passengers),
     updatedAt: now || Date.now()
   };
 }

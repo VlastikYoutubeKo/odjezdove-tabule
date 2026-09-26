@@ -5,6 +5,7 @@ OMSI 2, takže nezávisí na skriptech autobusu a vidí:
 
 - **všechny autobusy jedoucí podle jízdního řádu**: vůz hráče i AI v načtené části mapy,
   s linkou, cílem, příští zastávkou a zpožděním,
+- **polohu a směr jízdy** každého vozu (metry od středu mapy), počet cestujících a výrobce/model vozu,
 - **název mapy a herní čas**,
 - **celý jízdní řád mapy**, který umí vyexportovat do formátu `data/` (nemusíte ho přepisovat ručně).
 
@@ -83,12 +84,13 @@ Pak commit a push (GitHub Pages), případně `npx wrangler deploy` (Workers).
 |---|---|
 | `server` | adresa `…/api/vehicles` |
 | `token` | token ze serveru |
-| `driver` | vaše jméno v seznamu vozů |
+| `driver` | vaše jméno v seznamu vozů; prázdné = přezdívka z účtu Steam |
 | `id` | ID hráče (výchozí: název počítače) |
 | `map` | ID mapy z `data/stops.json`; prázdné = odvodí se z názvu mapy v OMSI |
 | `interval` | jak často posílat, v sekundách |
 | `include_ai` | posílat i AI autobusy (`1`/`0`) |
 | `export_on_load` | po načtení mapy uložit jízdní řád do `export\` |
+| `check_version` | na jiné verzi OMSI než 2.3.004 nic neposílat (`1`/`0`) |
 | `delay_scale` | převod zpoždění na sekundy, kdyby se ukázalo, že OMSI počítá jinak |
 | `player_*_var` | záloha pro jízdu bez jízdního řádu OMSI: názvy string proměnných skriptu vozu |
 
@@ -101,6 +103,12 @@ Pak commit a push (GitHub Pages), případně `npx wrangler deploy` (Workers).
 - `Core/Tracker.cs` každých `interval` sekund pošle snímek na server jako jednu dávku.
   Server ji bere jako úplný stav hráče: vozy, které z okolí zmizely, smaže.
 - `Plugin/` je vstupní bod pro OMSI (nativní DLL vyrábí DNNE), `Cli/` je samostatný program.
+
+- Poloha: OMSI drží polohu vozu relativně k dlaždici 300 × 300 m, takže
+  `x = (MyKachelPnt.x − Map.CenterKachel.x) · 300 + Position.x`, obdobně `y` z `Position.z`.
+  Směr jízdy je `atan2(Pos_Mat._20, Pos_Mat._22)` ve stupních.
+- Verze OMSI se čte z `logfile.txt` v adresáři hry (řádek `Version: 2.3.004`). Na jiné verzi
+  plugin nic neposílá, protože adresy v paměti by nesedělo.
 
 Připojení běží s `AttachToOMSI(false)`, bez vzdáleného volání funkcí OMSI, takže plugin
 OmsiHookRPCPlugin není potřeba.

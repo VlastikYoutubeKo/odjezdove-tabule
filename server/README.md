@@ -82,11 +82,15 @@ chybí, server smaže. ID vozu na serveru je `source.id:id`.
 {
   "source": { "id": "omsi-MUJPC", "driver": "Vlasta", "map": "autobahnmap", "gameTime": "14:32" },
   "vehicles": [
-    { "id": "1234", "ai": false, "route": "201", "headsign": "Nemocnice", "nextStop": "Lovosice, aut. nádr.", "delay": 120, "speed": 42 },
+    { "id": "1234", "ai": false, "route": "201", "headsign": "Nemocnice", "nextStop": "Lovosice, aut. nádr.", "delay": 120, "speed": 42,
+      "vehicle": "SOR NB 12", "passengers": 14, "x": -512.3, "y": 1890.0, "heading": 87.5 },
     { "id": "5678", "ai": true,  "route": "210", "headsign": "Maxičky",   "nextStop": "Lovosice, nemocnice", "delay": -30 }
   ]
 }
 ```
+
+`x`/`y` jsou metry od středové dlaždice mapy, `heading` směr jízdy ve stupních; zatím se jen ukládají
+(připravené pro budoucí mapu vozů).
 
 Starší plugin posílá jeden vůz bez `source`/`vehicles` (`{ "id": …, "route": …, … }`), i to se přijme.
 Nejvýš 300 vozů v dávce, 256 KB na požadavek.

@@ -124,7 +124,7 @@ namespace OmsiTabule
             // AI auta bez jízdního řádu (běžný provoz) nás nezajímají.
             if (string.IsNullOrWhiteSpace(route) && !isPlayer) return null;
 
-            return new VehicleDto
+            var dto = new VehicleDto
             {
                 Id = v.IDCode != 0 ? v.IDCode.ToString() : "i" + index,
                 Ai = !isPlayer,
@@ -133,8 +133,41 @@ namespace OmsiTabule
                 NextStop = Clean(nextStop),
                 Delay = delay,
                 Speed = Math.Round(Math.Abs(v.Tacho), 1),
-                Vehicle = Clean(v.ComplMapObj?.FriendlyName)
+                Vehicle = VehicleName(v),
+                Passengers = (int)Math.Max(0, Math.Round(v.Humans_Count))
             };
+            SetPosition(dto, v);
+            return dto;
+        }
+
+        /// <summary>
+        /// Globální poloha: OMSI drží polohu relativně k dlaždici (300 × 300 m), takže
+        /// (dlaždice vozu − středová dlaždice mapy) × 300 + poloha na dlaždici.
+        /// Směr jízdy je z třetího řádku matice polohy (vektor dopředu).
+        /// </summary>
+        private void SetPosition(VehicleDto dto, OmsiRoadVehicleInst v)
+        {
+            var center = hook.Globals.Map?.CenterKachel;
+            if (center == null) return;
+            var tile = v.MyKachelPnt;
+            var pos = v.Position;
+            dto.X = Math.Round((tile.x - center.Value.x) * TileSize + pos.x, 1);
+            dto.Y = Math.Round((tile.y - center.Value.y) * TileSize + pos.z, 1);
+            var m = v.Pos_Mat;
+            double hdg = Math.Atan2(m._20, m._22) * 180.0 / Math.PI;
+            dto.Heading = Math.Round(hdg < 0 ? hdg + 360 : hdg, 1);
+        }
+
+        private const double TileSize = 300.0;
+
+        private static string? VehicleName(OmsiRoadVehicleInst v)
+        {
+            var model = Clean(v.ComplMapObj?.FriendlyName);
+            string? maker = null;
+            try { maker = Clean(v.RoadVehicle?.Hersteller); } catch { }
+            if (maker == null) return model;
+            if (model == null) return maker;
+            return model.StartsWith(maker, StringComparison.OrdinalIgnoreCase) ? model : maker + " " + model;
         }
 
         private static string? ReadStringVar(OmsiRoadVehicleInst v, string name)

@@ -88,7 +88,11 @@ namespace OmsiTabule
         [JsonPropertyName("delay")] public double? Delay { get; set; }
         [JsonPropertyName("speed")] public double? Speed { get; set; }
         [JsonPropertyName("vehicle")] public string? Vehicle { get; set; }
+        /// <summary>Globální poloha v metrech od středové dlaždice mapy (x = východ, y = sever).</summary>
         [JsonPropertyName("x")] public double? X { get; set; }
         [JsonPropertyName("y")] public double? Y { get; set; }
+        /// <summary>Směr jízdy ve stupních (0–360).</summary>
+        [JsonPropertyName("heading")] public double? Heading { get; set; }
+        [JsonPropertyName("passengers")] public int? Passengers { get; set; }
     }
 }
