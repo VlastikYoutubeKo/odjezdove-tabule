@@ -1,0 +1,53 @@
+/* Mapa vozů – celá obrazovka, ovládací lišta nahoře. */
+.map-page { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+.map-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  padding: 8px 16px; border-bottom: 3px solid var(--accent); background: var(--panel);
+}
+.map-bar h1 { margin: 0; font-size: 1.3em; }
+.map-bar .spacer { flex: 1; }
+.map-bar select, .map-bar button {
+  font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; cursor: pointer;
+}
+.map-bar button:hover, .map-bar select:hover { border-color: var(--accent); }
+.map-bar nav a { margin-left: 10px; }
+.toggle { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+
+.map-wrap { position: relative; flex: 1; min-height: 0; }
+#map { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; background: #081528; }
+#map.dragging { cursor: grabbing; }
+
+.trail { fill: none; stroke: rgba(159, 179, 209, 0.28); stroke-linecap: round; stroke-linejoin: round; }
+
+.veh { cursor: pointer; }
+.veh .body { fill: #4da3ff; stroke: #081528; }
+.veh.player .body { fill: var(--accent); }
+.veh.late .ring { stroke: #ff6b5a; }
+.veh .ring { fill: transparent; stroke: transparent; } /* větší plocha pro kliknutí */
+.veh.selected .ring { stroke: #fff; }
+.veh text {
+  font-family: var(--font); font-weight: 700; fill: #fff;
+  paint-order: stroke; stroke: #081528; stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.scale {
+  position: absolute; left: 16px; bottom: 16px; padding-top: 4px;
+  border-top: 2px solid var(--muted); color: var(--muted); font-size: 0.8em;
+}
+
+.detail {
+  position: absolute; top: 12px; right: 12px; width: min(300px, calc(100% - 24px));
+  background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+.detail h2 { margin: 0 0 6px; font-size: 1.1em; color: var(--text); text-transform: none; letter-spacing: 0; }
+.detail dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: 0.9em; }
+.detail dt { color: var(--muted); }
+.detail dd { margin: 0; }
+.detail .close { float: right; background: none; border: 0; color: var(--muted); font-size: 1.3em; cursor: pointer; }
+
+.empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px; }
+.empty[hidden], .detail[hidden] { display: none; }
