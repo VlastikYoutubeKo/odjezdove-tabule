@@ -28,3 +28,15 @@ TIME_ZONE = "Europe/Prague"
 VEHICLE_TIMEOUT_SECONDS = "60"
 # Tokeny pro plugin NEPATŘÍ sem, nastavte je jako secret:
 #   npx wrangler secret put TOKENS     (více tokenů oddělte čárkou)
+
+# Náhledy větví (Cloudflare Workers Builds → `wrangler preview`).
+# Každý náhled dostane vlastní, oddělený Durable Object – nesdílí vozy s produkcí.
+# Token pro náhledy: npx wrangler preview secret put TOKENS (jinak zápis vozů bez tokenu).
+[previews.vars]
+CLOCK = "real"
+TIME_ZONE = "Europe/Prague"
+VEHICLE_TIMEOUT_SECONDS = "60"
+
+[[previews.durable_objects.bindings]]
+name = "HUB"
+class_name = "VehicleHub"

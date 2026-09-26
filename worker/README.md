@@ -40,6 +40,11 @@ nastavení: Root directory `/`, Build command prázdný, Deploy command `npx wra
 větev `main`. Token pro plugin pak nastavte v Settings → Variables and Secrets jako **Secret**
 `TOKENS`. Každý push do `main` se nasadí sám.
 
+Pull requesty a ostatní větve Cloudflare nasazuje jako **náhledy** (`wrangler preview`).
+Nastavení náhledů je v bloku `[previews]` ve `wrangler.toml`: každý náhled má vlastní
+Durable Object, takže nesdílí vozy s produkcí. Token pro náhledy se nastavuje zvlášť:
+`npx wrangler preview secret put TOKENS` (bez něj náhled přijme vozy od kohokoli).
+
 ## Lokální vývoj
 
 ```
