@@ -1,14 +1,15 @@
 name: Release
 
-# Vydání pluginu: vytvořte tag vX.Y.Z (GitHub → Releases → Draft a new release → nový tag,
-# nebo `git tag v1.0.0 && git push origin v1.0.0`), případně spusťte ručně z karty Actions.
+# Vydání pluginu: GitHub → Releases → Draft a new release → nový tag (např. 0.2 nebo v1.0.0) → Publish.
+# Workflow pak k releasu přiloží ZIPy. Pro už existující release (nebo když se build nepovedl)
+# spusťte ručně: Actions → Release → Run workflow → zadejte název tagu.
 on:
   push:
-    tags: ["v*"]
+    tags: ["*"]
   workflow_dispatch:
     inputs:
-      version:
-        description: "Verze, např. 1.0.0 (vytvoří tag v1.0.0)"
+      tag:
+        description: "Tag releasu, např. 0.1 (existující tag, nebo nový – vytvoří se z main)"
         required: true
 
 permissions:
@@ -19,20 +20,43 @@ jobs:
     runs-on: windows-latest
     outputs:
       version: ${{ steps.v.outputs.version }}
+      label: ${{ steps.v.outputs.label }}
+      tag: ${{ steps.v.outputs.tag }}
+      sha: ${{ steps.sha.outputs.sha }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
       - name: Verze
         id: v
         shell: pwsh
         run: |
-          $v = "${{ inputs.version }}"
-          if (-not $v) { $v = "${{ github.ref_name }}" }
-          $v = $v.Trim().TrimStart('v')
-          if ($v -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw "Neplatná verze: $v (čekám např. 1.0.0)" }
-          "version=$v" >> $env:GITHUB_OUTPUT
+          $tag = "${{ inputs.tag }}"
+          if (-not $tag) { $tag = "${{ github.ref_name }}" }
+          $tag = $tag.Trim()
+          $v = $tag.TrimStart('v', 'V')
+          # 0.1 → 0.1.0 (sestavení .NET potřebuje aspoň tři čísla), přípona -beta zůstává
+          if ($v -notmatch '^(\d+)(\.\d+)?(\.\d+)?(\.\d+)?(-[0-9A-Za-z.-]+)?$') { throw "Tag '$tag' nevypadá jako verze (např. 0.1, 1.0.0, v1.2.0-beta.1)" }
+          $core = $v -replace '-.*$', ''
+          $suffix = if ($v -match '(-.*)$') { $Matches[1] } else { '' }
+          $parts = @($core.Split('.'))
+          while ($parts.Count -lt 3) { $parts += '0' }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$($parts -join '.')$suffix" >> $env:GITHUB_OUTPUT
+          "label=$v" >> $env:GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Commit k vydání
+        id: sha
+        shell: pwsh
+        run: |
+          # existující tag → stavíme přesně jeho commit; nový tag → aktuální commit (main)
+          $tag = "${{ steps.v.outputs.tag }}"
+          $sha = git rev-parse --verify --quiet "refs/tags/$tag^{commit}"
+          if ($LASTEXITCODE -eq 0 -and $sha) { git checkout --quiet $sha } else { $sha = git rev-parse HEAD }
+          "sha=$sha" >> $env:GITHUB_OUTPUT
+          Write-Host "Stavím $sha pro tag $tag"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
       - name: Testy
         run: dotnet test plugin/omsihook-tabule/Tests
       - name: Plugin do OMSI
@@ -42,7 +66,7 @@ jobs:
       - name: Balíčky
         shell: pwsh
         run: |
-          $v = "${{ steps.v.outputs.version }}"
+          $v = "${{ steps.v.outputs.label }}"
           if (-not (Test-Path out/plugin/OmsiTabuleNE.dll)) { throw "Chybí OmsiTabuleNE.dll" }
           Remove-Item out/plugin/*.pdb, out/program/*.pdb -ErrorAction SilentlyContinue
           Copy-Item plugin/omsihook-tabule/INSTALACE.txt out/plugin/, out/program/
@@ -59,11 +83,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.omsihook.outputs.sha }}
       - run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-i686 zip
       - run: ./plugin/omsi2-tracker/build-mingw.sh
       - name: Balíček
         run: |
-          v="${{ needs.omsihook.outputs.version }}"
+          v="${{ needs.omsihook.outputs.label }}"
           cd plugin/omsi2-tracker
           cp omsi2tracker.opl omsi2tracker.ini README.md build/
           mkdir -p ../../dist
@@ -84,12 +110,14 @@ jobs:
           path: dist
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.omsihook.outputs.version }}
-          target_commitish: ${{ github.sha }}
-          name: OmsiTabule ${{ needs.omsihook.outputs.version }}
-          prerelease: ${{ contains(needs.omsihook.outputs.version, '-') }}
+          tag_name: ${{ needs.omsihook.outputs.tag }}
+          target_commitish: ${{ needs.omsihook.outputs.sha }}
+          prerelease: ${{ contains(needs.omsihook.outputs.label, '-') }}
           generate_release_notes: true
+          # u releasu vytvořeného ručně zachová váš popis a návod připojí na konec
+          append_body: true
           files: dist/*.zip
+          fail_on_unmatched_files: true
           body: |
             ## Ke stažení
             - **OmsiTabule-plugin** – plugin do `OMSI 2\plugins\` (doporučeno)
