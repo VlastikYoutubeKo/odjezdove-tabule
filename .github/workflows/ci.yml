@@ -35,9 +35,7 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-        working-directory: worker
-      - run: npx wrangler deploy --dry-run --outdir dist
-        working-directory: worker
+      - run: npx wrangler deploy --dry-run --outdir worker/dist
 
   omsihook-plugin:
     runs-on: windows-latest

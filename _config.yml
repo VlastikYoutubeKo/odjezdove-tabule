@@ -3,3 +3,7 @@ exclude:
   - server
   - plugin
   - .github
+  - worker
+  - tools
+  - wrangler.toml
+  - package.json

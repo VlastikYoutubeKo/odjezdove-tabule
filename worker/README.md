@@ -10,10 +10,10 @@ Stejný server jako `server/`, ale běží na Cloudflare Workers – bez vlastn�
 
 ## Nasazení
 
-Potřebujete účet na Cloudflare (stačí free) a Node.js 18+.
+Potřebujete účet na Cloudflare (stačí free) a Node.js 18+. Konfigurace (`wrangler.toml`)
+je v kořeni repozitáře, všechny příkazy se spouštějí odtud.
 
 ```
-cd worker
 npm install
 npx wrangler login
 npx wrangler secret put TOKENS      # token(y) pro plugin, více oddělte čárkou
@@ -32,19 +32,24 @@ Vlastní doménu (např. `tabla.plainrock127.xyz`) lze připojit v Cloudflare da
 (Workers → odjezdove-tabule → Settings → Domains & Routes), pokud je doména na Cloudflare.
 
 Po změně jízdních řádů nebo zastávek v `data/` stačí znovu spustit `npx wrangler deploy`.
-Nasazení lze i zautomatizovat z GitHubu (Cloudflare → Workers → Import a repository,
-kořenový adresář `worker`).
+
+### Automatické nasazení z GitHubu
+
+Cloudflare → Workers & Pages → Create → Import a repository → vyberte repozitář a nechte výchozí
+nastavení: Root directory `/`, Build command prázdný, Deploy command `npx wrangler deploy`,
+větev `main`. Token pro plugin pak nastavte v Settings → Variables and Secrets jako **Secret**
+`TOKENS`. Každý push do `main` se nasadí sám.
 
 ## Lokální vývoj
 
 ```
-cd worker
+npm install
 echo "TOKENS=tajny" > .dev.vars
 npx wrangler dev                              # http://localhost:8787
-node ../server/simulate.js http://localhost:8787 tajny
+node server/simulate.js http://localhost:8787 tajny
 ```
 
-## Nastavení (`wrangler.toml` → `[vars]`)
+## Nastavení (`/wrangler.toml` → `[vars]`)
 
 | Proměnná | Význam |
 |---|---|

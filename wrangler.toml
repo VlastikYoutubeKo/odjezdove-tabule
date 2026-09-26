@@ -1,14 +1,16 @@
+# Cloudflare Worker – server odjezdových tabulí (viz worker/README.md).
+# Konfigurace je v kořeni repozitáře, aby šlo nasazovat z GitHubu bez dalšího nastavení.
 name = "odjezdove-tabule"
-main = "index.js"
+main = "worker/index.js"
 compatibility_date = "2025-09-01"
 
-# Web a data/ se před spuštěním zkopírují do public/ (build.mjs)
+# Web a data/ se před nasazením zkopírují do worker/public/ (worker/build.mjs)
 [build]
-command = "node build.mjs"
-watch_dir = ["../assets", "../data", "../server/core.js", "index.js"]
+command = "node worker/build.mjs"
+watch_dir = ["assets", "data", "server/core.js", "worker/index.js"]
 
 [assets]
-directory = "public"
+directory = "worker/public"
 binding = "ASSETS"
 run_worker_first = ["/api/*", "/data/config.json"]
 
