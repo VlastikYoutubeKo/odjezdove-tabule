@@ -26,7 +26,9 @@
     var names = {};
     (data.maps || []).forEach(function (m) { names[m.id] = m.name; });
     var keys = Object.keys(byMap).sort();
-    info.textContent = data.vehicles.length ? data.vehicles.length + " vozů v provozu" : "Právě nikdo nejezdí.";
+    var n = data.vehicles.length;
+    var word = n === 1 ? "vůz" : n >= 2 && n <= 4 ? "vozy" : "vozů";
+    info.textContent = n ? n + " " + word + " v provozu" : "Právě nikdo nejezdí.";
     keys.forEach(function (k) {
       var h = document.createElement("h2");
       h.textContent = names[k] || k;
