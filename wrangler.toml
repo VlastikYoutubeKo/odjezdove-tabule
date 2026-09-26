@@ -1,0 +1,42 @@
+# Cloudflare Worker – server odjezdových tabulí (viz worker/README.md).
+# Konfigurace je v kořeni repozitáře, aby šlo nasazovat z GitHubu bez dalšího nastavení.
+name = "odjezdove-tabule"
+main = "worker/index.js"
+compatibility_date = "2025-09-01"
+
+# Web a data/ se před nasazením zkopírují do worker/public/ (worker/build.mjs)
+[build]
+command = "node worker/build.mjs"
+watch_dir = ["assets", "data", "server/core.js", "worker/index.js"]
+
+[assets]
+directory = "worker/public"
+binding = "ASSETS"
+run_worker_first = ["/api/*", "/data/config.json"]
+
+[[durable_objects.bindings]]
+name = "HUB"
+class_name = "VehicleHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["VehicleHub"]
+
+[vars]
+CLOCK = "real"
+TIME_ZONE = "Europe/Prague"
+VEHICLE_TIMEOUT_SECONDS = "60"
+# Tokeny pro plugin NEPATŘÍ sem, nastavte je jako secret:
+#   npx wrangler secret put TOKENS     (více tokenů oddělte čárkou)
+
+# Náhledy větví (Cloudflare Workers Builds → `wrangler preview`).
+# Každý náhled dostane vlastní, oddělený Durable Object – nesdílí vozy s produkcí.
+# Token pro náhledy: npx wrangler preview secret put TOKENS (jinak zápis vozů bez tokenu).
+[previews.vars]
+CLOCK = "real"
+TIME_ZONE = "Europe/Prague"
+VEHICLE_TIMEOUT_SECONDS = "60"
+
+[[previews.durable_objects.bindings]]
+name = "HUB"
+class_name = "VehicleHub"

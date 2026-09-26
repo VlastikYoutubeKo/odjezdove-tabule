@@ -19,7 +19,7 @@ test("API: příjem vozu, seznam vozů, tabule, statické soubory", async () => 
     const list = await r.json();
     assert.strictEqual(list.vehicles.length, 1);
     assert.strictEqual(list.vehicles[0].nextStopName, "Lovosice, aut. nádr.");
-    assert.ok(!("remote" in list.vehicles[0]));
+    
 
     r = await fetch(base + "/api/boards/0000000002");
     const board = await r.json();

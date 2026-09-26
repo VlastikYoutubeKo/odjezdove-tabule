@@ -1,0 +1,14 @@
+{
+  "name": "odjezdove-tabule",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Odjezdové tabule pro OMSI 2 – nasazení na Cloudflare Workers",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "cd server && npm test"
+  },
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  }
+}

@@ -1,3 +1,9 @@
 server/config.json
 node_modules/
 plugin/omsi2-tracker/build/
+.wrangler/
+.dev.vars
+worker/public/
+worker/dist/
+plugin/omsihook-tabule/**/bin/
+plugin/omsihook-tabule/**/obj/

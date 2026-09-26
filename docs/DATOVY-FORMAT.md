@@ -25,6 +25,9 @@ Všechna data jsou obyčejné JSON soubory ve složce `data/`. Stačí je upravi
 
 Každý soubor musí být uvedený v `data/timetables/index.json`.
 
+Jízdní řád nemusíte psát ručně: plugin OmsiTabule ho umí vyexportovat z OMSI a
+`node tools/import-omsi.js export/<mapa>.json` ho sem vloží. `offset` může být i desetinné číslo.
+
 ```json
 {
   "map": "autobahnmap",

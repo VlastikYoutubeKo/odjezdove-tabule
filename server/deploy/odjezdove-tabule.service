@@ -1,0 +1,23 @@
+# systemd služba pro server odjezdových tabulí.
+# Instalace: viz server/README.md, sekce „Nasazení na VPS“.
+[Unit]
+Description=Odjezdové tabule
+After=network.target
+
+[Service]
+Type=simple
+User=tabule
+WorkingDirectory=/opt/odjezdove-tabule
+ExecStart=/usr/bin/node server/server.js
+Environment=PORT=8080
+Restart=always
+RestartSec=5
+# zabezpečení
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/opt/odjezdove-tabule
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -37,6 +37,20 @@
     return d === 0 ? 7 : d;
   }
 
+  // Minuty od půlnoci a den v týdnu v daném časovém pásmu (servery běží často v UTC).
+  function zonedNow(date, timeZone) {
+    if (!timeZone) return { minutes: date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60, weekday: isoWeekday(date) };
+    var parts = {};
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: timeZone, hourCycle: "h23", weekday: "short", hour: "2-digit", minute: "2-digit", second: "2-digit"
+    }).formatToParts(date).forEach(function (p) { parts[p.type] = p.value; });
+    var days = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
+    return {
+      minutes: Number(parts.hour) * 60 + Number(parts.minute) + Number(parts.second) / 60,
+      weekday: days[parts.weekday]
+    };
+  }
+
   function runsOn(route, weekday) {
     return !route.days || route.days.indexOf(weekday) !== -1;
   }
@@ -160,6 +174,7 @@
       var delayMin = Math.round((Number(v.delay) || 0) / 60);
       items.push(makeItem(best.route, best.entry, best.eta, {
         Live: true,
+        Ai: v.ai === true,
         Delay: delayMin,
         VehicleId: v.id,
         _route: best.route,
@@ -175,6 +190,16 @@
    */
   function merge(scheduledItems, liveItems) {
     var rest = scheduledItems.slice();
+    // Stejný spoj může hlásit víc hráčů (každý má v OMSI vlastní AI vozy).
+    // Necháme jeden – přednost má vůz řízený hráčem.
+    var unique = [];
+    liveItems.slice().sort(function (a, b) { return (a.Ai ? 1 : 0) - (b.Ai ? 1 : 0); }).forEach(function (li) {
+      var dup = unique.some(function (u) {
+        return u._route === li._route && Math.abs((u._minutes - u.Delay) - (li._minutes - li.Delay)) < 2;
+      });
+      if (!dup) unique.push(li);
+    });
+    liveItems = unique;
     liveItems.forEach(function (li) {
       var planned = li._minutes - li.Delay;
       var bestIdx = -1, bestDiff = 6;
@@ -221,6 +246,7 @@
 
   return {
     parseHM: parseHM,
+    zonedNow: zonedNow,
     tripStarts: tripStarts,
     scheduled: scheduled,
     live: live,

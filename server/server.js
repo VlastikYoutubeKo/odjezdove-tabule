@@ -13,7 +13,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const Departures = require("../assets/js/departures.js");
+const Core = require("./core.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const DATA = path.join(ROOT, "data");
@@ -28,29 +28,27 @@ function readJson(file, fallback) {
 }
 
 const serverConfig = Object.assign(
-  { port: 8080, host: "0.0.0.0", tokens: [], vehicleTimeoutSeconds: 60, clock: "real" },
+  { port: 8080, host: "0.0.0.0" },
+  Core.DEFAULTS,
   readJson(path.join(__dirname, "config.json"), {})
 );
 if (process.env.PORT) serverConfig.port = Number(process.env.PORT);
 if (process.env.TOKENS) serverConfig.tokens = process.env.TOKENS.split(",").filter(Boolean);
 
 // ---- data (znovu se načtou při změně souborů) ----
-let boardConfig, stopsFile, stopsById, timetablesByMap;
+let data;
 
 function loadData() {
-  boardConfig = readJson(path.join(DATA, "config.json"), {});
-  stopsFile = readJson(path.join(DATA, "stops.json"), { maps: [], stops: [] });
-  stopsById = {};
-  stopsFile.stops.forEach((s) => { stopsById[s.id] = s; });
   const index = readJson(path.join(DATA, "timetables", "index.json"), { files: [] });
-  timetablesByMap = {};
-  index.files.forEach((f) => {
-    const tt = readJson(path.join(DATA, "timetables", f));
-    (timetablesByMap[tt.map] = timetablesByMap[tt.map] || []).push(tt);
+  data = Core.indexData({
+    config: readJson(path.join(DATA, "config.json"), {}),
+    stops: readJson(path.join(DATA, "stops.json"), { maps: [], stops: [] }),
+    timetables: index.files.map((f) => readJson(path.join(DATA, "timetables", f)))
   });
-  console.log(`Načteno: ${stopsFile.stops.length} zastávek, ${index.files.length} jízdních řádů`);
+  console.log(`Načteno: ${data.stopsFile.stops.length} zastávek, ${index.files.length} jízdních řádů`);
 }
 loadData();
+
 function watchData() {
   let reloadTimer = null;
   try {
@@ -65,84 +63,20 @@ function watchData() {
   }
 }
 
-// ---- živé vozy ----
+// ---- živé vozy (jen v paměti) ----
 const vehicles = new Map();
 
-function resolveStop(ref) {
-  if (!ref) return null;
-  if (stopsById[ref]) return stopsById[ref];
-  const n = Departures.normalize(ref);
-  return stopsFile.stops.find((s) => Departures.normalize(s.name) === n) || null;
-}
-
 function activeVehicles() {
-  const limit = Date.now() - serverConfig.vehicleTimeoutSeconds * 1000;
-  for (const [id, v] of vehicles) if (v.updatedAt < limit) vehicles.delete(id);
+  const now = Date.now();
+  for (const [id, v] of vehicles) if (!Core.isFresh(v, serverConfig, now)) vehicles.delete(id);
   return [...vehicles.values()];
 }
 
-const str = (v, max) => (v == null ? undefined : String(v).slice(0, max || 100));
-const num = (v) => (v == null || v === "" || isNaN(Number(v)) ? undefined : Number(v));
-
-function acceptVehicle(body, remote) {
-  const id = str(body.id, 64);
-  if (!id) throw new Error("chybí id");
-  const nextStop = resolveStop(body.nextStop);
-  const v = {
-    id,
-    driver: str(body.driver, 40),
-    vehicle: str(body.vehicle, 60),
-    map: str(body.map, 60) || (nextStop && nextStop.map) || undefined,
-    route: str(body.route, 10),
-    headsign: str(body.headsign, 80),
-    nextStop: nextStop ? nextStop.id : str(body.nextStop, 80),
-    nextStopName: nextStop ? nextStop.name : str(body.nextStop, 80),
-    delay: num(body.delay),
-    speed: num(body.speed),
-    gameTime: /^\d{1,2}:\d{2}$/.test(String(body.gameTime)) ? String(body.gameTime) : undefined,
-    x: num(body.x),
-    y: num(body.y),
-    updatedAt: Date.now(),
-    remote
-  };
-  vehicles.set(id, v);
-  return v;
-}
-
-function publicVehicle(v) {
-  const o = Object.assign({}, v);
-  delete o.remote;
-  return o;
-}
-
-// Herní čas mapy = čas naposledy aktualizovaného vozu na mapě.
-function nowFor(map, active) {
-  if (serverConfig.clock === "game") {
-    const v = active.filter((x) => x.map === map && x.gameTime)
-      .sort((a, b) => b.updatedAt - a.updatedAt)[0];
-    if (v) {
-      const date = new Date();
-      return { minutes: Departures.parseHM(v.gameTime), weekday: date.getDay() || 7 };
-    }
-  }
-  return new Date();
-}
-
 function boardFor(stopId) {
-  const stop = stopsById[stopId];
+  const stop = data.stopsById[stopId];
   if (!stop) return null;
-  if (stop.source === "static") {
-    return readJson(path.join(DATA, "boards", stopId + ".json"), null);
-  }
-  const active = activeVehicles().filter((v) => !v.map || v.map === stop.map);
-  return Departures.buildBoard({
-    stop,
-    config: boardConfig,
-    timetables: timetablesByMap[stop.map] || [],
-    vehicles: active,
-    stopsById,
-    now: nowFor(stop.map, active)
-  });
+  if (stop.source === "static") return readJson(path.join(DATA, "boards", stopId + ".json"), null);
+  return Core.liveBoard(data, stop, activeVehicles(), serverConfig);
 }
 
 // ---- HTTP ----
@@ -170,10 +104,7 @@ function send(res, status, body, type) {
 }
 
 function authorized(req) {
-  if (!serverConfig.tokens.length) return true;
-  const h = req.headers.authorization || "";
-  const token = h.startsWith("Bearer ") ? h.slice(7) : "";
-  return serverConfig.tokens.includes(token);
+  return Core.checkToken(serverConfig, req.headers.authorization);
 }
 
 function readBody(req) {
@@ -182,7 +113,7 @@ function readBody(req) {
     const chunks = [];
     req.on("data", (c) => {
       size += c.length;
-      if (size > 16 * 1024) { reject(new Error("příliš velké tělo")); req.destroy(); return; }
+      if (size > Core.MAX_BODY) { reject(new Error("příliš velké tělo")); req.destroy(); return; }
       chunks.push(c);
     });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
@@ -199,7 +130,7 @@ function serveStatic(req, res, pathname) {
   if (!allowed || !file.startsWith(ROOT + path.sep)) return send(res, 404, { error: "nenalezeno" });
   // Frontend servírovaný tímto serverem má brát data z API tohoto serveru.
   if (rel === path.join("data", "config.json")) {
-    return send(res, 200, Object.assign({}, boardConfig, { apiBase: boardConfig.apiBase || "." }));
+    return send(res, 200, Object.assign({}, data.boardConfig, { apiBase: data.boardConfig.apiBase || "." }));
   }
   fs.readFile(file, (err, buf) => {
     if (err) return send(res, 404, { error: "nenalezeno" });
@@ -218,8 +149,7 @@ const server = http.createServer(async (req, res) => {
     if (p === "/api/vehicles" && req.method === "POST") {
       if (!authorized(req)) return send(res, 401, { error: "neplatný token" });
       const body = JSON.parse(await readBody(req));
-      const v = acceptVehicle(body, req.socket.remoteAddress);
-      return send(res, 200, { ok: true, map: v.map || null, nextStop: v.nextStop || null });
+      return send(res, 200, Core.applyReport(data, vehicles, body));
     }
     const del = /^\/api\/vehicles\/([^/]+)$/.exec(p);
     if (del && req.method === "DELETE") {
@@ -230,9 +160,9 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== "GET") return send(res, 405, { error: "nepodporovaná metoda" });
 
     if (p === "/api/vehicles") {
-      return send(res, 200, { maps: stopsFile.maps, vehicles: activeVehicles().map(publicVehicle) });
+      return send(res, 200, { maps: data.stopsFile.maps, vehicles: activeVehicles() });
     }
-    if (p === "/api/stops") return send(res, 200, stopsFile);
+    if (p === "/api/stops") return send(res, 200, data.stopsFile);
     const b = /^\/api\/boards\/([^/]+?)(\.json)?$/.exec(p);
     if (b) {
       const board = boardFor(decodeURIComponent(b[1]));
@@ -253,4 +183,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { server, vehicles, boardFor, acceptVehicle };
+module.exports = { server, vehicles, boardFor };
