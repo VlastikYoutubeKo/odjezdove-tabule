@@ -10,7 +10,7 @@ PLUGIN (OmsiTabule-plugin-*.zip)
 1. Všechny soubory ze ZIPu zkopírujte do složky  OMSI 2\plugins\
 2. V  plugins\OmsiTabule.ini  nastavte:
      server=https://<adresa serveru>/api/vehicles
-     token=<token od správce serveru>
+     token=         (jen pokud server vyžaduje token)
      driver=<vaše jméno>   (prázdné = přezdívka ze Steamu)
 3. Spusťte OMSI. Log najdete v  plugins\OmsiTabule.log
 
