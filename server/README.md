@@ -23,6 +23,31 @@ node server/simulate.js http://localhost:8080 <token>
 
 Testy: `cd server && npm test`
 
+## Nasazení na VPS
+
+Stačí malý VPS s Linuxem (Debian/Ubuntu), Node.js 18+ a doména nasměrovaná na VPS.
+
+```
+# jako root
+apt install -y nodejs git caddy
+useradd --system --home /opt/odjezdove-tabule tabule
+git clone https://github.com/VlastikYoutubeKo/odjezdove-tabule /opt/odjezdove-tabule
+cd /opt/odjezdove-tabule
+cp server/config.example.json server/config.json      # nastavte tokens, host dejte "127.0.0.1"
+chown -R tabule: /opt/odjezdove-tabule
+
+cp server/deploy/odjezdove-tabule.service /etc/systemd/system/
+systemctl enable --now odjezdove-tabule
+
+cp server/deploy/Caddyfile /etc/caddy/Caddyfile        # nastavte svou doménu
+systemctl reload caddy
+```
+
+Caddy sám zařídí HTTPS certifikát. Aktualizace: `git pull` a `systemctl restart odjezdove-tabule`
+(změny jen v `data/` se načtou i bez restartu).
+
+Logy: `journalctl -u odjezdove-tabule -f`
+
 ## Konfigurace (`server/config.json`)
 
 | Klíč | Význam |
@@ -42,11 +67,32 @@ Změny v `data/` se načtou automaticky bez restartu.
 | GET | `/api/stops` | obsah `data/stops.json` |
 | GET | `/api/boards/<id>` | tabule zastávky (stejný formát jako `data/boards/*.json`) |
 | GET | `/api/vehicles` | vozy v provozu |
-| POST | `/api/vehicles` | hlášení vozu (plugin), vyžaduje `Authorization: Bearer <token>` |
+| POST | `/api/vehicles` | hlášení z pluginu, vyžaduje `Authorization: Bearer <token>` (formát níže) |
 | DELETE | `/api/vehicles/<id>` | odebrání vozu |
 
 GET požadavky mají povolený CORS, takže tabule na GitHub Pages může brát data ze serveru jinde:
 stačí nastavit `apiBase` v `data/config.json`, nebo přidat `?api=https://muj-server.cz` do adresy tabule.
+
+### Formát hlášení
+
+Plugin OmsiTabule posílá celý snímek hráče najednou. Vozy téhož `source.id`, které ve snímku
+chybí, server smaže. ID vozu na serveru je `source.id:id`.
+
+```json
+{
+  "source": { "id": "omsi-MUJPC", "driver": "Vlasta", "map": "autobahnmap", "gameTime": "14:32" },
+  "vehicles": [
+    { "id": "1234", "ai": false, "route": "201", "headsign": "Nemocnice", "nextStop": "Lovosice, aut. nádr.", "delay": 120, "speed": 42 },
+    { "id": "5678", "ai": true,  "route": "210", "headsign": "Maxičky",   "nextStop": "Lovosice, nemocnice", "delay": -30 }
+  ]
+}
+```
+
+Starší plugin posílá jeden vůz bez `source`/`vehicles` (`{ "id": …, "route": …, … }`), i to se přijme.
+Nejvýš 300 vozů v dávce, 256 KB na požadavek.
+
+Každý hráč má v OMSI vlastní AI vozy. Když stejný spoj hlásí víc hráčů, tabule ukáže jen jeden
+(přednost má vůz řízený hráčem).
 
 ## Jak se páruje živý vůz se zastávkou
 

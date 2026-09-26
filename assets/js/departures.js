@@ -174,6 +174,7 @@
       var delayMin = Math.round((Number(v.delay) || 0) / 60);
       items.push(makeItem(best.route, best.entry, best.eta, {
         Live: true,
+        Ai: v.ai === true,
         Delay: delayMin,
         VehicleId: v.id,
         _route: best.route,
@@ -189,6 +190,16 @@
    */
   function merge(scheduledItems, liveItems) {
     var rest = scheduledItems.slice();
+    // Stejný spoj může hlásit víc hráčů (každý má v OMSI vlastní AI vozy).
+    // Necháme jeden – přednost má vůz řízený hráčem.
+    var unique = [];
+    liveItems.slice().sort(function (a, b) { return (a.Ai ? 1 : 0) - (b.Ai ? 1 : 0); }).forEach(function (li) {
+      var dup = unique.some(function (u) {
+        return u._route === li._route && Math.abs((u._minutes - u.Delay) - (li._minutes - li.Delay)) < 2;
+      });
+      if (!dup) unique.push(li);
+    });
+    liveItems = unique;
     liveItems.forEach(function (li) {
       var planned = li._minutes - li.Delay;
       var bestIdx = -1, bestDiff = 6;

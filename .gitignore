@@ -5,3 +5,5 @@ plugin/omsi2-tracker/build/
 .dev.vars
 worker/public/
 worker/dist/
+plugin/omsihook-tabule/**/bin/
+plugin/omsihook-tabule/**/obj/

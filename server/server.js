@@ -113,7 +113,7 @@ function readBody(req) {
     const chunks = [];
     req.on("data", (c) => {
       size += c.length;
-      if (size > 16 * 1024) { reject(new Error("příliš velké tělo")); req.destroy(); return; }
+      if (size > Core.MAX_BODY) { reject(new Error("příliš velké tělo")); req.destroy(); return; }
       chunks.push(c);
     });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
@@ -149,9 +149,7 @@ const server = http.createServer(async (req, res) => {
     if (p === "/api/vehicles" && req.method === "POST") {
       if (!authorized(req)) return send(res, 401, { error: "neplatný token" });
       const body = JSON.parse(await readBody(req));
-      const v = Core.sanitizeVehicle(data, body);
-      vehicles.set(v.id, v);
-      return send(res, 200, { ok: true, map: v.map || null, nextStop: v.nextStop || null });
+      return send(res, 200, Core.applyReport(data, vehicles, body));
     }
     const del = /^\/api\/vehicles\/([^/]+)$/.exec(p);
     if (del && req.method === "DELETE") {

@@ -1,4 +1,8 @@
-# OMSI 2 Tracker (plugin)
+# OMSI 2 Tracker (záložní plugin)
+
+> Hlavní plugin je [OmsiTabule](../omsihook-tabule/README.md) (přes OmsiHook), který vidí všechny
+> vozy včetně AI a umí exportovat jízdní řád. Tento jednodušší plugin je záloha pro jiné verze OMSI
+> než 2.3.004, protože nečte paměť hry, ale jen proměnné skriptu vozu.
 
 Plugin do OMSI 2, který každých pár sekund pošle na server odjezdových tabulí stav vašeho vozu:
 linku, směr, příští zastávku, zpoždění, rychlost a herní čas. Server z toho počítá živé odjezdy

@@ -9,7 +9,6 @@ import { DurableObject } from "cloudflare:workers";
 import Core from "../server/core.js";
 
 const DATA_TTL_MS = 60 * 1000;
-const MAX_BODY = 16 * 1024;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -84,10 +83,8 @@ export class VehicleHub extends DurableObject {
       const denied = this.unauthorized(request);
       if (denied) return denied;
       const text = await request.text();
-      if (text.length > MAX_BODY) return json({ error: "příliš velké tělo" }, 413);
-      const v = Core.sanitizeVehicle(data, JSON.parse(text));
-      this.vehicles.set(v.id, v);
-      return json({ ok: true, map: v.map || null, nextStop: v.nextStop || null });
+      if (text.length > Core.MAX_BODY) return json({ error: "příliš velké tělo" }, 413);
+      return json(Core.applyReport(data, this.vehicles, JSON.parse(text)));
     }
     const del = /^\/api\/vehicles\/([^/]+)$/.exec(p);
     if (del && request.method === "DELETE") {

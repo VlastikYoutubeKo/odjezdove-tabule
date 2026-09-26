@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Plugin do OMSI 2. Nativní část (OmsiTabuleNE.dll) vyrábí DNNE, jde to jen na Windows. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+    <Platforms>x86</Platforms>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>OmsiTabule</AssemblyName>
+    <RootNamespace>OmsiTabule</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- plugin běží i na novějším .NET, pokud 8 není nainstalované -->
+    <RollForward>LatestMajor</RollForward>
+    <DnneRuntimeIdentifier>win-x86</DnneRuntimeIdentifier>
+    <DnneNativeBinaryName>OmsiTabuleNE</DnneNativeBinaryName>
+    <DnneAddGeneratedBinaryToProject>false</DnneAddGeneratedBinaryToProject>
+    <!-- Mimo Windows jen ověříme, že se přeloží C# (bez nativní DLL). -->
+    <DnneBuildExports Condition="'$(OS)' != 'Windows_NT'">false</DnneBuildExports>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Core/*.cs" />
+    <PackageReference Include="OmsiHook" Version="2.5.3" />
+    <PackageReference Include="DNNE" Version="2.0.6" />
+    <None Include="../OmsiTabule.opl" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../OmsiTabule.ini" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -38,3 +38,28 @@ jobs:
         working-directory: worker
       - run: npx wrangler deploy --dry-run --outdir dist
         working-directory: worker
+
+  omsihook-plugin:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Testy
+        run: dotnet test plugin/omsihook-tabule/Tests
+      - name: Plugin do OMSI
+        run: dotnet build plugin/omsihook-tabule/Plugin -c Release -o out/plugins
+      - name: Samostatný program
+        run: dotnet publish plugin/omsihook-tabule/Cli -c Release -o out/program
+      - name: Kontrola nativní DLL
+        shell: pwsh
+        run: if (-not (Test-Path out/plugins/OmsiTabuleNE.dll)) { throw "Chybí OmsiTabuleNE.dll" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmsiTabule-plugin
+          path: out/plugins/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmsiTabule-program
+          path: out/program/

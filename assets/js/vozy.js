@@ -49,7 +49,7 @@
           cell(tr, v.nextStopName || v.nextStop);
           cell(tr, fmtDelay(v.delay));
           cell(tr, v.speed != null ? Math.round(v.speed) + " km/h" : "");
-          cell(tr, v.driver);
+          cell(tr, v.ai ? "AI" : v.driver);
           cell(tr, v.vehicle);
           t.appendChild(tr);
         });
