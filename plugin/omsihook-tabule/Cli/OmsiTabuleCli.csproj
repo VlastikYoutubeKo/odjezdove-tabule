@@ -11,6 +11,8 @@
     <RootNamespace>OmsiTabule</RootNamespace>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <RollForward>LatestMajor</RollForward>
+    <!-- při releasu přepíše workflow: -p:Version=X.Y.Z -->
+    <Version>0.0.0-dev</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Core/*.cs" />

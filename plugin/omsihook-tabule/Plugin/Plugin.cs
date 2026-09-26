@@ -26,7 +26,7 @@ namespace OmsiTabule
                 Log.FilePath = Path.Combine(dir, "OmsiTabule.log");
                 try { File.Delete(Log.FilePath); } catch { }
                 var cfg = Config.Load(Path.Combine(dir, "OmsiTabule.ini"));
-                Log.Write("OmsiTabule: start");
+                Log.Write($"OmsiTabule {Log.Version}: start");
 
                 // Připojení k OMSI chvíli trvá – neblokujeme načítání hry.
                 Task.Run(async () =>

@@ -24,6 +24,7 @@ namespace OmsiTabule
             var cfg = Config.Load(Path.Combine(dir, "OmsiTabule.ini"));
             string cmd = args.Length > 0 ? args[0].ToLowerInvariant() : "run";
 
+            Log.Write($"OmsiTabule {Log.Version}");
             Console.WriteLine("Připojuji se k OMSI 2 (musí běžet, verze 2.3.004)…");
             using var hook = new OmsiHook.OmsiHook();
             await hook.AttachToOMSI(false);
