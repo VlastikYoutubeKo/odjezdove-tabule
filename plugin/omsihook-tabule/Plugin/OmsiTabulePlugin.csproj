@@ -13,6 +13,8 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- plugin běží i na novějším .NET, pokud 8 není nainstalované -->
     <RollForward>LatestMajor</RollForward>
+    <!-- při releasu přepíše workflow: -p:Version=X.Y.Z -->
+    <Version>0.0.0-dev</Version>
     <DnneRuntimeIdentifier>win-x86</DnneRuntimeIdentifier>
     <DnneNativeBinaryName>OmsiTabuleNE</DnneNativeBinaryName>
     <DnneAddGeneratedBinaryToProject>false</DnneAddGeneratedBinaryToProject>

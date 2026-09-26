@@ -1,0 +1,27 @@
+OmsiTabule – plugin do OMSI 2 pro odjezdové tabule
+===================================================
+
+Požadavky
+- OMSI 2 verze 2.3.004 (aktuální Steam)
+- .NET 8 Runtime pro x86 (32bit!):
+  https://dotnet.microsoft.com/download/dotnet/8.0  →  „.NET Runtime“  →  Windows  →  x86
+
+PLUGIN (OmsiTabule-plugin-*.zip)
+1. Všechny soubory ze ZIPu zkopírujte do složky  OMSI 2\plugins\
+2. V  plugins\OmsiTabule.ini  nastavte:
+     server=https://<adresa serveru>/api/vehicles
+     token=<token od správce serveru>
+     driver=<vaše jméno>   (prázdné = přezdívka ze Steamu)
+3. Spusťte OMSI. Log najdete v  plugins\OmsiTabule.log
+
+SAMOSTATNÝ PROGRAM (OmsiTabule-program-*.zip)
+Dělá totéž co plugin, ale běží vedle hry – když něco selže, OMSI nespadne.
+1. Rozbalte kamkoli, upravte OmsiTabule.ini (stejně jako výše).
+2. Spusťte OMSI, načtěte mapu, pak spusťte OmsiTabule.exe
+     OmsiTabule.exe          posílá vozy na server (Ctrl+C = konec)
+     OmsiTabule.exe dump     jen vypíše, co vidí (nic neposílá)
+     OmsiTabule.exe export   uloží jízdní řád mapy do složky export\
+Plugin a program nepoužívejte současně.
+
+Aktualizace: přepište soubory novou verzí, OmsiTabule.ini si zazálohujte.
+Chyby hlaste s přiloženým OmsiTabule.log (je v něm i verze pluginu).

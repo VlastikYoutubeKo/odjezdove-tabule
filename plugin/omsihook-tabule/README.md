@@ -20,10 +20,21 @@ OMSI 2, takže nezávisí na skriptech autobusu a vidí:
 
 ## Stažení
 
-GitHub → **Actions** → poslední úspěšný běh **CI** → dole **Artifacts**:
+Hotové verze jsou na GitHubu v sekci **Releases**:
 
-- `OmsiTabule-plugin`: plugin do OMSI,
-- `OmsiTabule-program`: samostatný program (totéž, ale běží mimo hru).
+- `OmsiTabule-plugin-X.Y.Z.zip`: plugin do OMSI,
+- `OmsiTabule-program-X.Y.Z.zip`: samostatný program (totéž, ale běží mimo hru),
+- `omsi2tracker-zaloha-X.Y.Z.zip`: záložní jednoduchý plugin.
+
+Vývojové buildy z každého commitu jsou v **Actions** → běh **CI** → **Artifacts**.
+
+### Vydání nové verze
+
+GitHub → **Releases** → **Draft a new release** → *Choose a tag* → napište nový tag, např. `v1.0.1`
+→ **Publish release**. Workflow `Release` pak sám postaví všechny balíčky a přiloží je k releasu
+(trvá to pár minut). Alternativně Actions → **Release** → **Run workflow** a zadat verzi,
+nebo z příkazové řádky `git tag v1.0.1 && git push origin v1.0.1`.
+Verze s pomlčkou (`v1.1.0-beta.1`) se označí jako předběžná.
 
 ## Instalace pluginu
 
