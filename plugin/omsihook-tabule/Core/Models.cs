@@ -1,8 +1,20 @@
 using System.Collections.Generic;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace OmsiTabule
 {
+    public static class JsonOpts
+    {
+        /// <summary>Čeština bez \uXXXX, bez null hodnot.</summary>
+        public static readonly JsonSerializerOptions Default = new()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+    }
+
     // ---- jízdní řád tak, jak ho má OMSI (nezávislé na OmsiHook, kvůli testům) ----
 
     public sealed record TtLine(string Name, List<TtTour> Tours);

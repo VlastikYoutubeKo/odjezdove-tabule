@@ -42,3 +42,17 @@ test("import exportu z OMSI do data/", () => {
 
   assert.throws(() => importExport({ format: "x" }, dir), /není export/);
 });
+
+test("import silnic mapy do data/maps/", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tabule-"));
+  fs.writeFileSync(path.join(dir, "stops.json"), JSON.stringify({ maps: [], stops: [] }));
+  const r = importExport({
+    format: "odjezdove-tabule-mapa", version: 1, map: { id: "autobahnmap", name: "Autobahnmap" },
+    layers: { roads: [[0, 0, 10, 0], [1, 2, 3], "x"], rails: [] }
+  }, dir);
+  assert.deepStrictEqual(r, { kind: "mapa", mapId: "autobahnmap", roads: 1, rails: 0 });
+  const m = JSON.parse(fs.readFileSync(path.join(dir, "maps", "autobahnmap.json"), "utf8"));
+  assert.deepStrictEqual(m.roads, [[0, 0, 10, 0]]);
+  assert.strictEqual(JSON.parse(fs.readFileSync(path.join(dir, "stops.json"), "utf8")).maps[0].id, "autobahnmap");
+  assert.throws(() => importExport({ format: "odjezdove-tabule-mapa", map: { id: "../x" } }, dir), /platné ID/);
+});

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using OmsiHook;
 
@@ -136,26 +137,52 @@ namespace OmsiTabule
                 Vehicle = VehicleName(v),
                 Passengers = (int)Math.Max(0, Math.Round(v.Humans_Count))
             };
-            SetPosition(dto, v);
+            SetPosition(dto, v, isPlayer);
             return dto;
         }
 
         /// <summary>
-        /// Globální poloha: OMSI drží polohu relativně k dlaždici (300 × 300 m), takže
-        /// (dlaždice vozu − středová dlaždice mapy) × 300 + poloha na dlaždici.
+        /// Poloha v souřadnicích souborů mapy: OMSI drží polohu vozu vůči dlaždici 300 × 300 m,
+        /// takže dlaždice × 300 + poloha na dlaždici. Stejně počítá MapExporter silnice
+        /// (dlaždice = čísla v názvu tile_X_Y.map), takže vozy a silnice na webu sedí na sebe.
         /// Směr jízdy je z třetího řádku matice polohy (vektor dopředu).
         /// </summary>
-        private void SetPosition(VehicleDto dto, OmsiRoadVehicleInst v)
+        private void SetPosition(VehicleDto dto, OmsiRoadVehicleInst v, bool isPlayer)
         {
-            var center = hook.Globals.Map?.CenterKachel;
-            if (center == null) return;
             var tile = v.MyKachelPnt;
             var pos = v.Position;
-            dto.X = Math.Round((tile.x - center.Value.x) * TileSize + pos.x, 1);
-            dto.Y = Math.Round((tile.y - center.Value.y) * TileSize + pos.z, 1);
+            dto.X = Math.Round(tile.x * TileSize + pos.x, 1);
+            dto.Y = Math.Round(tile.y * TileSize + pos.z, 1);
             var m = v.Pos_Mat;
             double hdg = Math.Atan2(m._20, m._22) * 180.0 / Math.PI;
             dto.Heading = Math.Round(hdg < 0 ? hdg + 360 : hdg, 1);
+            if (isPlayer && !loggedTile)
+            {
+                // pro kontrolu při testu: dlaždice by měla odpovídat souboru tile_X_Y.map, kde vůz stojí
+                loggedTile = true;
+                Log.Write($"Vůz hráče: dlaždice {tile.x}_{tile.y}, poloha na dlaždici {pos.x:0.0} / {pos.z:0.0}");
+            }
+        }
+
+        private bool loggedTile;
+
+        /// <summary>Složka mapy (…\maps\Mapa) podle toho, odkud OMSI mapu načetlo.</summary>
+        public string? MapFolder()
+        {
+            try
+            {
+                var file = hook.Globals.Map?.Filename;
+                if (string.IsNullOrWhiteSpace(file)) return null;
+                if (!Path.IsPathRooted(file))
+                {
+                    var exe = hook.OmsiProcess?.MainModule?.FileName;
+                    if (exe == null) return null;
+                    file = Path.Combine(Path.GetDirectoryName(exe)!, file);
+                }
+                var dir = Directory.Exists(file) ? file : Path.GetDirectoryName(file);
+                return dir != null && Directory.EnumerateFiles(dir, "tile_*.map").Any() ? dir : null;
+            }
+            catch { return null; }
         }
 
         private const double TileSize = 300.0;

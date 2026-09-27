@@ -20,6 +20,19 @@ const players = [
   }
 ];
 
+// Smyšlená trasa: vůz objíždí obdélník (metry, x = východ, y = sever).
+function position(offset, t, w, h) {
+  const perim = 2 * (w + h);
+  let d = ((t * 60 + offset) % perim + perim) % perim; // 60 m za 5 s ≈ 43 km/h
+  if (d < w) return { x: d, y: 0, heading: 90 };
+  d -= w;
+  if (d < h) return { x: w, y: d, heading: 0 };
+  d -= h;
+  if (d < w) return { x: w - d, y: h, heading: 270 };
+  d -= w;
+  return { x: 0, y: h - d, heading: 180 };
+}
+
 let tick = 0;
 async function send() {
   tick++;
@@ -30,6 +43,8 @@ async function send() {
       vehicles: p.buses.map((b) => ({
         id: b.id, ai: b.ai === true, vehicle: b.vehicle, route: b.route, headsign: b.headsign,
         nextStop: b.stops[Math.floor(tick / 6) % b.stops.length],
+        ...position(Number(b.id) * 1100, tick, 900, 600),
+        passengers: (tick * 3 + b.id.length * 7) % 40,
         delay: 60 * ((tick + b.id.length) % 5), speed: 20 + (tick * 7) % 30
       }))
     };

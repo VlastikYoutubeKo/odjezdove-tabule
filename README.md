@@ -6,12 +6,13 @@ Odjezdové tabule pro fiktivní mapu Autobahnmap do hry OMSI 2, případně i pr
 - **Jízdní řád z OMSI** – plugin umí vyexportovat jízdní řád mapy, `tools/import-omsi.js` ho vloží do `data/`.
 - **Vlastní data** – jízdní řády a zastávky jsou obyčejné JSON soubory v `data/`, tabule umí načíst i JSON z libovolné adresy. Viz [docs/DATOVY-FORMAT.md](docs/DATOVY-FORMAT.md).
 - **Bez serveru** – s jízdními řády běží vše na GitHub Pages, odjezdy se počítají v prohlížeči.
-- **Živá data z OMSI 2** (volitelné) – [plugin OmsiTabule](plugin/omsihook-tabule/README.md) posílá všechny autobusy v okolí hráče (i AI) na server, ten ukazuje živé odjezdy se zpožděním a seznam vozů v provozu rozdělený podle map. Server běží buď [na Cloudflare Workers](worker/README.md) (zdarma, bez vlastního počítače), nebo [v Node.js](server/README.md) kdekoli jinde.
+- **Živá data z OMSI 2** (volitelné) – [plugin OmsiTabule](plugin/omsihook-tabule/README.md) posílá všechny autobusy v okolí hráče (i AI) na server, ten ukazuje živé odjezdy se zpožděním, seznam vozů v provozu rozdělený podle map a **živou mapu vozů** (`mapa.html`), na které se z projetých stop postupně vykreslí silnice. Server běží buď [na Cloudflare Workers](worker/README.md) (zdarma, bez vlastního počítače), nebo [v Node.js](server/README.md) kdekoli jinde.
 
 ```
 index.html               seznam zastávek podle map, vlastní JSON
 tabule.html              odjezdová tabule
 vozy.html                vozy v provozu (vyžaduje server)
+mapa.html                živá mapa vozů se stopami projetých tras (vyžaduje server)
 assets/js/departures.js  výpočet odjezdů (sdílí prohlížeč i server)
 data/                    zastávky, jízdní řády, hotové tabule, nastavení
 server/                  Node.js server (příjem dat z pluginu, API); server/core.js = sdílená logika
