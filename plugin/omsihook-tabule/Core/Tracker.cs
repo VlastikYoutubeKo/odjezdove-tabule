@@ -16,12 +16,7 @@ namespace OmsiTabule
     /// </summary>
     public sealed class Tracker : IDisposable
     {
-        public static readonly JsonSerializerOptions Json = new()
-        {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            WriteIndented = false,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-        };
+        public static readonly JsonSerializerOptions Json = JsonOpts.Default;
 
         private readonly Config cfg;
         private readonly OmsiReader reader;

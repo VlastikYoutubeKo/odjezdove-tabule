@@ -16,7 +16,7 @@ const path = require("path");
 const Core = require("./core.js");
 
 const ROOT = path.resolve(__dirname, "..");
-const DATA = path.join(ROOT, "data");
+const DATA = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(ROOT, "data");
 
 function readJson(file, fallback) {
   try {
@@ -34,9 +34,27 @@ const serverConfig = Object.assign(
 );
 if (process.env.PORT) serverConfig.port = Number(process.env.PORT);
 if (process.env.TOKENS) serverConfig.tokens = process.env.TOKENS.split(",").filter(Boolean);
+if (process.env.MAP_TOKENS) serverConfig.mapTokens = process.env.MAP_TOKENS.split(",").filter(Boolean);
+if (process.env.GITHUB_TOKEN && process.env.GITHUB_REPO) {
+  serverConfig.github = { token: process.env.GITHUB_TOKEN, repo: process.env.GITHUB_REPO, branch: process.env.GITHUB_BRANCH || "main" };
+}
+const MAPS = path.join(DATA, "maps");
 
 // ---- data (znovu se načtou při změně souborů) ----
 let data;
+
+let uploadedMaps = [];
+
+// Mapové podklady v data/maps/<id>.json (z tools/import-omsi.js nebo nahrané přes /api/maps).
+function listMaps() {
+  let files = [];
+  try { files = fs.readdirSync(MAPS).filter((f) => /^[\w-]+\.json$/.test(f)); } catch (e) { return []; }
+  return files.map((f) => {
+    const id = f.slice(0, -5);
+    const m = readJson(path.join(MAPS, f), {});
+    return { id, name: m.name || id };
+  });
+}
 
 function loadData() {
   const index = readJson(path.join(DATA, "timetables", "index.json"), { files: [] });
@@ -45,7 +63,8 @@ function loadData() {
     stops: readJson(path.join(DATA, "stops.json"), { maps: [], stops: [] }),
     timetables: index.files.map((f) => readJson(path.join(DATA, "timetables", f)))
   });
-  console.log(`Načteno: ${data.stopsFile.stops.length} zastávek, ${index.files.length} jízdních řádů`);
+  uploadedMaps = listMaps();
+  console.log(`Načteno: ${data.stopsFile.stops.length} zastávek, ${index.files.length} jízdních řádů, ${uploadedMaps.length} mapových podkladů`);
 }
 loadData();
 
@@ -107,13 +126,14 @@ function authorized(req) {
   return Core.checkToken(serverConfig, req.headers.authorization);
 }
 
-function readBody(req) {
+function readBody(req, limit) {
+  limit = limit || Core.MAX_BODY;
   return new Promise((resolve, reject) => {
     let size = 0;
     const chunks = [];
     req.on("data", (c) => {
       size += c.length;
-      if (size > Core.MAX_BODY) { reject(new Error("příliš velké tělo")); req.destroy(); return; }
+      if (size > limit) { reject(new Error("příliš velké tělo")); req.destroy(); return; }
       chunks.push(c);
     });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
@@ -151,6 +171,29 @@ const server = http.createServer(async (req, res) => {
       const body = JSON.parse(await readBody(req));
       return send(res, 200, Core.applyReport(data, vehicles, body));
     }
+    const mp = /^\/api\/maps\/([\w-]{1,60})(\.json)?$/.exec(p);
+    if (mp && req.method === "POST") {
+      const auth = Core.checkMapToken(serverConfig, req.headers.authorization);
+      if (auth === "disabled") return send(res, 403, { error: "nahrávání map není na serveru zapnuté (MAP_TOKENS)" });
+      if (auth !== "ok") return send(res, 401, { error: "neplatný token pro nahrávání map" });
+      const map = Core.normalizeMap(JSON.parse(await readBody(req, Core.MAX_MAP_BODY)), mp[1]);
+      const text = JSON.stringify(map) + "\n";
+      fs.mkdirSync(MAPS, { recursive: true });
+      fs.writeFileSync(path.join(MAPS, map.map + ".json"), text);
+      uploadedMaps = listMaps();
+      let github = "vypnuto";
+      if (serverConfig.github) {
+        try {
+          github = await Core.commitToGitHub(serverConfig.github, "data/maps/" + map.map + ".json", text,
+            "Mapa " + map.name + ": " + map.roads.length + " úseků silnic (nahráno z OmsiTabule)") || "ok";
+        } catch (e) { github = "chyba: " + e.message; }
+      }
+      return send(res, 200, { ok: true, map: map.map, roads: map.roads.length, rails: map.rails.length, github });
+    }
+    if (mp && req.method === "GET") {
+      const file = path.join(MAPS, mp[1] + ".json");
+      return fs.existsSync(file) ? send(res, 200, fs.readFileSync(file)) : send(res, 404, { error: "mapa nemá podklad" });
+    }
     const del = /^\/api\/vehicles\/([^/]+)$/.exec(p);
     if (del && req.method === "DELETE") {
       if (!authorized(req)) return send(res, 401, { error: "neplatný token" });
@@ -160,7 +203,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== "GET") return send(res, 405, { error: "nepodporovaná metoda" });
 
     if (p === "/api/vehicles") {
-      return send(res, 200, { maps: data.stopsFile.maps, vehicles: activeVehicles() });
+      return send(res, 200, { maps: Core.mapList(data, uploadedMaps), vehicles: activeVehicles() });
     }
     if (p === "/api/stops") return send(res, 200, data.stopsFile);
     const b = /^\/api\/boards\/([^/]+?)(\.json)?$/.exec(p);

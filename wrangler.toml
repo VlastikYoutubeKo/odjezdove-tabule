@@ -26,8 +26,13 @@ new_sqlite_classes = ["VehicleHub"]
 CLOCK = "real"
 TIME_ZONE = "Europe/Prague"
 VEHICLE_TIMEOUT_SECONDS = "60"
-# Tokeny pro plugin NEPATŘÍ sem, nastavte je jako secret:
-#   npx wrangler secret put TOKENS     (více tokenů oddělte čárkou)
+# Nahrané mapy se ukládají i do GitHubu (data/maps/<mapa>.json), když je nastavený GITHUB_TOKEN.
+GITHUB_REPO = "VlastikYoutubeKo/odjezdove-tabule"
+GITHUB_BRANCH = "main"
+# Tajné hodnoty NEPATŘÍ sem, nastavte je jako secret (dashboard nebo npx wrangler secret put …):
+#   TOKENS        tokeny pro posílání vozů (prázdné = kdokoli)
+#   MAP_TOKENS    tokeny pro nahrávání map (bez nich je nahrávání vypnuté)
+#   GITHUB_TOKEN  fine-grained token s právem Contents: Read and write k repozitáři
 
 # Náhledy větví (Cloudflare Workers Builds → `wrangler preview`).
 # Každý náhled dostane vlastní, oddělený Durable Object – nesdílí vozy s produkcí.
@@ -36,6 +41,8 @@ VEHICLE_TIMEOUT_SECONDS = "60"
 CLOCK = "real"
 TIME_ZONE = "Europe/Prague"
 VEHICLE_TIMEOUT_SECONDS = "60"
+GITHUB_REPO = "VlastikYoutubeKo/odjezdove-tabule"
+GITHUB_BRANCH = "main"
 
 [[previews.durable_objects.bindings]]
 name = "HUB"

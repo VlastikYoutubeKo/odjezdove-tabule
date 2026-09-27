@@ -7,7 +7,12 @@
 
 const Departures = require("../assets/js/departures.js");
 
-const DEFAULTS = { tokens: [], vehicleTimeoutSeconds: 60, clock: "real", timeZone: "Europe/Prague" };
+const DEFAULTS = {
+  tokens: [], vehicleTimeoutSeconds: 60, clock: "real", timeZone: "Europe/Prague",
+  // nahrávání map: bez tokenu je vypnuté (jinak by kdokoli mohl přepisovat mapy a commitovat na GitHub)
+  mapTokens: [],
+  github: null   // { token, repo: "owner/repo", branch }
+};
 
 // Připraví načtená data: { config, stops, timetables: [..] }
 function indexData({ config, stops, timetables }) {
@@ -134,4 +139,80 @@ function checkToken(settings, authorization) {
   return settings.tokens.includes(h.startsWith("Bearer ") ? h.slice(7) : "");
 }
 
-module.exports = { DEFAULTS, MAX_BODY, indexData, resolveStop, sanitizeVehicle, applyReport, isFresh, nowFor, liveBoard, checkToken };
+// ---------- mapové podklady (silnice) ----------
+
+const MAX_MAP_BODY = 20 * 1024 * 1024;
+const MAX_MAP_LINES = 300000;
+const MAP_ID = /^[\w-]{1,60}$/;
+
+function checkMapToken(settings, authorization) {
+  if (!settings.mapTokens || !settings.mapTokens.length) return "disabled";
+  const h = authorization || "";
+  return settings.mapTokens.includes(h.startsWith("Bearer ") ? h.slice(7) : "") ? "ok" : "denied";
+}
+
+/** Zkontroluje nahranou mapu (formát z OmsiTabule / tools/import-omsi.js) a vrátí data/maps/<id>.json. */
+function normalizeMap(body, id) {
+  if (!body || typeof body !== "object") throw new Error("neplatná data mapy");
+  const mapId = id || (body.map && (typeof body.map === "string" ? body.map : body.map.id));
+  if (!mapId || !MAP_ID.test(mapId)) throw new Error("neplatné ID mapy");
+  const layers = body.layers || body;
+  let count = 0;
+  const clean = (lines) => (Array.isArray(lines) ? lines : []).filter((l) => {
+    const ok = Array.isArray(l) && l.length >= 4 && l.length % 2 === 0 && l.every(Number.isFinite);
+    if (ok) count++;
+    return ok;
+  });
+  const out = {
+    map: mapId,
+    name: str((body.map && body.map.name) || body.name || mapId, 100),
+    roads: clean(layers.roads),
+    rails: clean(layers.rails)
+  };
+  if (count > MAX_MAP_LINES) throw new Error("mapa má příliš mnoho úseků");
+  if (!count) throw new Error("mapa neobsahuje žádné silnice ani koleje");
+  return out;
+}
+
+function utf8ToBase64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+/**
+ * Uloží soubor do repozitáře přes GitHub API (vytvoří nebo přepíše, jeden commit).
+ * github = { token, repo: "owner/repo", branch }
+ */
+async function commitToGitHub(github, path, content, message) {
+  const base = "https://api.github.com/repos/" + github.repo + "/contents/" + path.split("/").map(encodeURIComponent).join("/");
+  const headers = {
+    Authorization: "Bearer " + github.token,
+    Accept: "application/vnd.github+json",
+    "User-Agent": "odjezdove-tabule",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const branch = github.branch || "main";
+  let sha;
+  const cur = await fetch(base + "?ref=" + encodeURIComponent(branch), { headers });
+  if (cur.ok) sha = (await cur.json()).sha;
+  else if (cur.status !== 404) throw new Error("GitHub: " + cur.status + " " + (await cur.text()).slice(0, 200));
+  const res = await fetch(base, {
+    method: "PUT",
+    headers: Object.assign({ "Content-Type": "application/json" }, headers),
+    body: JSON.stringify({ message, content: utf8ToBase64(content), branch, sha })
+  });
+  if (!res.ok) throw new Error("GitHub: " + res.status + " " + (await res.text()).slice(0, 200));
+  const out = await res.json();
+  return out.commit && out.commit.html_url;
+}
+
+/** Seznam map pro /api/vehicles: mapy ze stops.json + nahrané mapy. */
+function mapList(data, uploaded) {
+  const maps = data.stopsFile.maps.slice();
+  (uploaded || []).forEach((m) => { if (!maps.some((x) => x.id === m.id)) maps.push(m); });
+  return maps;
+}
+
+module.exports = { DEFAULTS, MAX_BODY, MAX_MAP_BODY, checkMapToken, normalizeMap, commitToGitHub, mapList, utf8ToBase64, indexData, resolveStop, sanitizeVehicle, applyReport, isFresh, nowFor, liveBoard, checkToken };

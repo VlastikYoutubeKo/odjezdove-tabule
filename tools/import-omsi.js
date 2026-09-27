@@ -16,6 +16,7 @@
 const fs = require("fs");
 const path = require("path");
 const { normalize } = require("../assets/js/departures.js");
+const { normalizeMap } = require("../server/core.js");
 
 function readJson(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) { if (fallback !== undefined) return fallback; throw e; }
@@ -25,12 +26,8 @@ function writeJson(file, value) {
 }
 
 function importMap(exp, dataDir) {
-  const mapId = exp.map && exp.map.id;
-  if (!mapId || !/^[\w-]+$/.test(mapId)) throw new Error("Export mapy nemá platné ID mapy.");
-  const layers = exp.layers || {};
-  const clean = (lines) => (Array.isArray(lines) ? lines : [])
-    .filter((l) => Array.isArray(l) && l.length >= 4 && l.length % 2 === 0 && l.every(Number.isFinite));
-  const out = { map: mapId, name: (exp.map.name || mapId), roads: clean(layers.roads), rails: clean(layers.rails) };
+  const out = normalizeMap(exp);
+  const mapId = out.map;
   const dir = path.join(dataDir, "maps");
   fs.mkdirSync(dir, { recursive: true });
   // bez odsazení – soubor bývá velký

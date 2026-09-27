@@ -22,7 +22,9 @@ Dělá totéž co plugin, ale běží vedle hry – když něco selže, OMSI nes
      OmsiTabule.exe dump     jen vypíše, co vidí (nic neposílá)
      OmsiTabule.exe export   uloží jízdní řád mapy do složky export\
      OmsiTabule.exe mapa "…\OMSI 2\maps\Mapa" id-mapy
-                             silnice mapy pro mapu vozů na webu (OMSI nemusí běžet)
+                             silnice mapy do souboru export\ (OMSI nemusí běžet)
+   Když OMSI neběží, OmsiTabule.exe nabídne seznam map a vybranou pošle na server
+   jako podklad pro mapu vozů na webu (potřebuje map_token od správce serveru).
 Plugin a program nepoužívejte současně.
 
 Aktualizace: přepište soubory novou verzí, OmsiTabule.ini si zazálohujte.

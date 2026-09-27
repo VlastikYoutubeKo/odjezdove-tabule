@@ -1,7 +1,8 @@
 {
   "port": 8080,
   "host": "0.0.0.0",
-  "tokens": ["zmen-me-na-tajny-token"],
+  "tokens": [],
+  "mapTokens": ["zmen-me-token-pro-nahravani-map"],
   "vehicleTimeoutSeconds": 60,
   "clock": "real",
   "timeZone": "Europe/Prague"

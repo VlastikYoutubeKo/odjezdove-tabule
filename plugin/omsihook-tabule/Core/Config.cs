@@ -20,6 +20,10 @@ namespace OmsiTabule
         public bool ExportOnLoad = true;
         /// <summary>Zastavit odesílání na jiné verzi OMSI než 2.3.004.</summary>
         public bool CheckVersion = true;
+        /// <summary>Složka OMSI 2; prázdné = najde se přes Steam.</summary>
+        public string OmsiDir = "";
+        /// <summary>Token pro nahrávání map na server (MAP_TOKENS na serveru).</summary>
+        public string MapToken = "";
         /// <summary>Převod AI_Scheduled_Delay na sekundy (pro případ, že by OMSI počítalo v jiných jednotkách).</summary>
         public double DelayScale = 1.0;
         /// <summary>Záložní proměnné skriptu hráčova vozu, když OMSI nemá platná data jízdního řádu.</summary>
@@ -28,6 +32,15 @@ namespace OmsiTabule
         public string PlayerNextStopVar = "";
 
         public string BaseDir = AppContext.BaseDirectory;
+
+        /// <summary>Adresa pro nahrání mapy: …/api/vehicles → …/api/maps/&lt;id&gt;.</summary>
+        public string MapUploadUrl(string mapId)
+        {
+            var baseUrl = Server.TrimEnd('/');
+            int i = baseUrl.LastIndexOf("/api/", StringComparison.OrdinalIgnoreCase);
+            if (i >= 0) baseUrl = baseUrl[..i];
+            return baseUrl + "/api/maps/" + Uri.EscapeDataString(mapId);
+        }
 
         public static Config Load(string path)
         {
@@ -52,6 +65,8 @@ namespace OmsiTabule
             c.IncludeAi = Get("include_ai", "1") != "0";
             c.ExportOnLoad = Get("export_on_load", "1") != "0";
             c.CheckVersion = Get("check_version", "1") != "0";
+            c.OmsiDir = Get("omsi_dir", "");
+            c.MapToken = Get("map_token", "");
             c.DelayScale = double.TryParse(Get("delay_scale", "1"), System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out var s) ? s : 1.0;
             c.PlayerLineVar = Get("player_line_var", "");

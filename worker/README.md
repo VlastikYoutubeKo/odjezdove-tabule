@@ -45,6 +45,22 @@ Nastavení náhledů je v bloku `[previews]` ve `wrangler.toml`: každý náhled
 Durable Object, takže nesdílí vozy s produkcí. Token pro náhledy se nastavuje zvlášť:
 `npx wrangler preview secret put TOKENS` (bez něj náhled přijme vozy od kohokoli).
 
+## Nahrávání map z programu (a ukládání do GitHubu)
+
+`OmsiTabule.exe` umí jednorázově poslat silnice vybrané mapy na server (když OMSI neběží,
+nabídne seznam map). Server mapu hned zobrazuje na `mapa.html` a pokud má GitHub token,
+uloží ji i do repozitáře jako `data/maps/<mapa>.json`. Commit do `main` pak Cloudflare
+sám znovu nasadí.
+
+Nastavení (Workers & Pages → odjezdove-tabule → Settings → Variables and Secrets, typ **Secret**):
+
+| Secret | Význam |
+|---|---|
+| `MAP_TOKENS` | token(y) pro nahrávání map; bez něj je nahrávání vypnuté. Stejný token patří do `map_token` v `OmsiTabule.ini`. |
+| `GITHUB_TOKEN` | volitelné – GitHub → Settings → Developer settings → Fine-grained tokens → nový token jen pro tento repozitář s oprávněním **Contents: Read and write**. |
+
+`GITHUB_REPO` a `GITHUB_BRANCH` jsou ve `wrangler.toml`. Posílání vozů zůstává otevřené (bez `TOKENS`).
+
 ## Lokální vývoj
 
 ```
@@ -59,6 +75,8 @@ node server/simulate.js http://localhost:8787 tajny
 | Proměnná | Význam |
 |---|---|
 | `TOKENS` | **secret**, tokeny pro zápis vozů; bez něj může vozy posílat kdokoli |
+| `MAP_TOKENS` | **secret**, tokeny pro nahrávání map; bez něj je nahrávání vypnuté |
+| `GITHUB_TOKEN` | **secret**, volitelně – nahrané mapy se commitují do `GITHUB_REPO` / `GITHUB_BRANCH` |
 | `CLOCK` | `real` = skutečný čas, `game` = herní čas posledního vozu na mapě |
 | `TIME_ZONE` | časové pásmo odjezdů (Cloudflare běží v UTC), výchozí `Europe/Prague` |
 | `VEHICLE_TIMEOUT_SECONDS` | po kolika sekundách bez zprávy vůz zmizí |

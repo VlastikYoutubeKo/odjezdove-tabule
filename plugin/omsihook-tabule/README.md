@@ -84,6 +84,14 @@ napište, co ukazuje OMSI a co program.
 
 ## Podklad pro mapu vozů (silnice)
 
+**Nejjednodušší cesta:** spusťte `OmsiTabule.exe`, když OMSI **neběží**. Program najde OMSI přes
+Steam (nebo podle `omsi_dir` v `.ini`), nabídne seznam map, vyberete číslo a silnice se pošlou
+na server. Ten je hned ukazuje na `mapa.html` a (pokud to má správce zapnuté) uloží je i do
+GitHubu. Potřebujete `map_token` od správce serveru. Totéž bez menu:
+`OmsiTabule.exe nahrat "…\OMSI 2\maps\Autobahnmap" autobahnmap`.
+
+Ruční cesta přes soubor:
+
 Mapa na webu (`mapa.html`) umí pod autobusy vykreslit skutečné silnice z mapy OMSI:
 
 ```
@@ -126,6 +134,8 @@ Pak commit a push (GitHub Pages), případně `npx wrangler deploy` (Workers).
 | `include_ai` | posílat i AI autobusy (`1`/`0`) |
 | `export_on_load` | po načtení mapy uložit jízdní řád do `export\` |
 | `check_version` | na jiné verzi OMSI než 2.3.004 nic neposílat (`1`/`0`) |
+| `omsi_dir` | složka OMSI 2; prázdné = najde se přes Steam |
+| `map_token` | token pro nahrávání map na server |
 | `delay_scale` | převod zpoždění na sekundy, kdyby se ukázalo, že OMSI počítá jinak |
 | `player_*_var` | záloha pro jízdu bez jízdního řádu OMSI: názvy string proměnných skriptu vozu |
 

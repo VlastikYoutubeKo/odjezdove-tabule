@@ -54,11 +54,16 @@ Logy: `journalctl -u odjezdove-tabule -f`
 |---|---|
 | `port`, `host` | kde server poslouchá (port lze přepsat proměnnou `PORT`) |
 | `tokens` | seznam tokenů, které smí posílat vozy (lze přepsat `TOKENS=a,b`). Prázdný = kdokoli. |
+| `mapTokens` | tokeny pro nahrávání map z programu (lze přepsat `MAP_TOKENS=a,b`). Prázdný = nahrávání vypnuté. |
 | `vehicleTimeoutSeconds` | po kolika sekundách bez zprávy vůz zmizí |
 | `clock` | `real` = odjezdy podle skutečného času, `game` = podle herního času posledního vozu na mapě |
 | `timeZone` | časové pásmo odjezdů, výchozí `Europe/Prague` (důležité, když server běží v UTC) |
 
 Změny v `data/` se načtou automaticky bez restartu.
+
+Nahrané mapy se ukládají do `data/maps/`. Aby se ukládaly i do GitHubu, spusťte server s proměnnými
+`GITHUB_TOKEN` (fine-grained token s oprávněním Contents: Read and write), `GITHUB_REPO=owner/repo`
+a volitelně `GITHUB_BRANCH` (výchozí `main`) – např. v systemd službě přes `Environment=`.
 
 ## API
 
@@ -69,6 +74,8 @@ Změny v `data/` se načtou automaticky bez restartu.
 | GET | `/api/vehicles` | vozy v provozu |
 | POST | `/api/vehicles` | hlášení z pluginu, vyžaduje `Authorization: Bearer <token>` (formát níže) |
 | DELETE | `/api/vehicles/<id>` | odebrání vozu |
+| GET | `/api/maps/<mapa>` | podklad mapy (silnice) |
+| POST | `/api/maps/<mapa>` | nahrání podkladu z programu, vyžaduje token z `mapTokens`; volitelně commit do GitHubu |
 
 GET požadavky mají povolený CORS, takže tabule na GitHub Pages může brát data ze serveru jinde:
 stačí nastavit `apiBase` v `data/config.json`, nebo přidat `?api=https://muj-server.cz` do adresy tabule.

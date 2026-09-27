@@ -97,8 +97,12 @@
   function loadBasemap(map) {
     if (!map || basemaps[map] !== undefined) return;
     basemaps[map] = false;
-    fetch("data/maps/" + encodeURIComponent(map) + ".json")
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    function get(url) {
+      return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); });
+    }
+    var file = "data/maps/" + encodeURIComponent(map) + ".json";
+    // přes API jsou vidět i mapy nahrané z programu ještě před nasazením na GitHub
+    (api ? get(api + "/api/maps/" + encodeURIComponent(map)).catch(function () { return get(file); }) : get(file))
       .then(function (data) {
         var first = (data.roads || [])[0] || (data.rails || [])[0];
         if (!first) return;

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
@@ -31,6 +33,62 @@ namespace OmsiTabule
             }
             catch { }
             return null;
+        }
+
+        /// <summary>
+        /// Složka OMSI 2: z nastavení (omsi_dir), jinak ze Steamu – hlavní knihovna i další
+        /// knihovny ze steamapps\libraryfolders.vdf.
+        /// </summary>
+        public static string? FindOmsiDir(string? configured)
+        {
+            var candidates = new List<string>();
+            if (!string.IsNullOrWhiteSpace(configured)) candidates.Add(configured);
+            var steam = SteamPath();
+            if (steam != null)
+            {
+                candidates.Add(Path.Combine(steam, "steamapps", "common", "OMSI 2"));
+                var vdf = Path.Combine(steam, "steamapps", "libraryfolders.vdf");
+                try
+                {
+                    if (File.Exists(vdf))
+                        foreach (var lib in ParseLibraryFolders(File.ReadAllText(vdf)))
+                            candidates.Add(Path.Combine(lib, "steamapps", "common", "OMSI 2"));
+                }
+                catch { }
+            }
+            return candidates.FirstOrDefault(d => Directory.Exists(Path.Combine(d, "maps")));
+        }
+
+        public static IEnumerable<string> ParseLibraryFolders(string vdf) =>
+            Regex.Matches(vdf, @"""path""\s*""(?<p>[^""]+)""").Select(m => m.Groups["p"].Value.Replace(@"\\", @"\"));
+
+        /// <summary>Mapy ve složce maps (podsložky s dlaždicemi tile_*.map), seřazené podle názvu.</summary>
+        public static List<(string Folder, string Name)> ListMaps(string omsiDir)
+        {
+            var maps = new List<(string, string)>();
+            var root = Path.Combine(omsiDir, "maps");
+            if (!Directory.Exists(root)) return maps;
+            foreach (var dir in Directory.EnumerateDirectories(root))
+            {
+                try
+                {
+                    if (!Directory.EnumerateFiles(dir, "tile_*.map").Any()) continue;
+                    maps.Add((dir, MapExporter.MapNameFromFolder(dir)));
+                }
+                catch { }
+            }
+            return maps.OrderBy(m => m.Item2, StringComparer.CurrentCultureIgnoreCase).ToList();
+        }
+
+        private static string? SteamPath()
+        {
+            try
+            {
+                if (!OperatingSystem.IsWindows()) return null;
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
+                return key?.GetValue("SteamPath") as string;
+            }
+            catch { return null; }
         }
 
         /// <summary>Přezdívka posledního přihlášeného účtu Steam (výchozí jméno řidiče).</summary>
